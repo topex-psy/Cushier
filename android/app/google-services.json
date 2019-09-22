@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "302399541264",
+    "firebase_url": "https://cushier.firebaseio.com",
+    "project_id": "cushier",
+    "storage_bucket": "cushier.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:302399541264:android:aecd75eec8ed0d5261ba95",
+        "android_client_info": {
+          "package_name": "io.cushier.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "302399541264-2qv07ic5slcf43fekcftu3ldrnnh0fnm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "io.cushier.app",
+            "certificate_hash": "cc6f3f5b8a93989004bd996e64cd6c40ed4515e8"
+          }
+        },
+        {
+          "client_id": "302399541264-cn1kierjcr84890ppc62g680kfj7o573.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4rymdxoQWfwx9PDqjKMThTAl7NUl3z3U"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "302399541264-cn1kierjcr84890ppc62g680kfj7o573.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

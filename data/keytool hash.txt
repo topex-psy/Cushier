@@ -1,0 +1,18 @@
+> keytool -list -v -alias androiddebugkey -keystore C:\Users\topex\.android\debug.keystore
+
+Enter keystore password: android
+Alias name: androiddebugkey
+Creation date: Mar 10, 2018
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: C=US, O=Android, CN=Android Debug
+Issuer: C=US, O=Android, CN=Android Debug
+Serial number: 1
+Valid from: Sat Mar 10 05:57:11 ICT 2018 until: Mon Mar 02 05:57:11 ICT 2048
+Certificate fingerprints:
+         MD5:  32:CD:4B:3C:75:25:EC:0D:D9:01:68:E1:AF:58:8E:8D
+         SHA1: CC:6F:3F:5B:8A:93:98:90:04:BD:99:6E:64:CD:6C:40:ED:45:15:E8
+         SHA256: F1:A1:35:1B:E3:0A:65:82:1D:2F:AA:9E:8E:1F:82:BA:DE:8A:8C:7D:F5:03:C8:AD:46:E7:35:85:D4:1D:9F:94
+         Signature algorithm name: SHA1withRSA
+         Version: 1

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:badges/badges.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -319,7 +320,12 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
           ) : Container(),
           actions: appState.isStarted ? <Widget>[
-            appState.me == null ? SizedBox() : IconButton(icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: () {},),
+            appState.me == null ? SizedBox() : Badge(
+              badgeColor: Colors.redAccent,
+              badgeContent: Text("3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Colors.white)), //TODO num notif
+              position: BadgePosition.topRight(top: -3.0, right: 3.0),
+              child: IconButton(icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: () {},),
+            ),
             PopupMenuButton<String>(
               icon: Icon(appState.me == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
               tooltip: "Menu",
@@ -448,13 +454,17 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
       }
       print("DATA PERSON BERHASIL DIMUAT!");
     }).catchError((e) {
-      print("DATA PERSON ERROOOOOOOOOOOOR: $e");
+      print("DATA PERSON ERROOOOOOOOOOOOR 1: $e");
     }).whenComplete(() {
       print("DATA PERSON DONEEEEEEEEEEEEE!");
     });
   }
 
   Future _cekLastPersons() async {
+    final appState = Provider.of<AppState>(context);
+
+    if (appState.me == null && appState.isStarted) _introAnimation();
+
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> lastPersons = prefs.getStringList('lastPersons') ?? [];
     if (lastPersons.isNotEmpty) {
@@ -485,12 +495,9 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
       curve: Curves.easeOut,
     ));
 
-    /* _lastPersons = [
-      PersonApi(uid: '1', email: "regina@cushier.id", level: widget.judul, namaLengkap: "Regina Wardoyo", foto: "https://www.carapdkt.net/wp-content/uploads/2017/03/Cara-PDKT-Langsung-cewek-cantik.png", terakhir: "5 menit"),
-      PersonApi(uid: '2', email: "yunisw@cushier.id", level: widget.judul, namaLengkap: "Yuni Saraswati", foto: "https://s.kaskus.id/images/2019/06/11/5595555_20190611050842.jpg", terakhir: "15 menit"),
-    ]; */
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _animationController.forward();
+      print("CEK LAST PERSON!!!!!!!!!!!!!!!!!!!!!");
       _cekLastPersons();
     });
   }
@@ -542,7 +549,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
           print("DATA PERSON BERHASIL DIMUAT!");
           LoginForm(p).show();
         }).catchError((e) {
-          print("DATA PERSON ERROOOOOOOOOOOOR: $e");
+          print("DATA PERSON ERROOOOOOOOOOOOR 2: $e");
           h.failAlertLogin();
         }).whenComplete(() {
           print("DATA PERSON DONEEEEEEEEEEEEE!");
@@ -581,14 +588,18 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
             child: Opacity(
               opacity: _intro.value + 1.0,
               child: Card(
-                key: widget.keyTour,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
                 clipBehavior: Clip.antiAlias,
-                elevation: 0.0,
-                margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 4.0),
-                shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(40.0), side: BorderSide(
-                  color: appState.getCurrentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.85).toColor() : Colors.grey[350],
-                  width: appState.getCurrentMenu == widget.pos ? 4.0 : 1.0,
-                )),
+                elevation: 12.0,
+                key: widget.keyTour,
+                margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
+                /* shape: ContinuousRectangleBorder(
+                  borderRadius: BorderRadius.circular(40.0),
+                  side: BorderSide(
+                    color: appState.getCurrentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.85).toColor() : Colors.grey[350],
+                    width: appState.getCurrentMenu == widget.pos ? 4.0 : 1.0,
+                  ),
+                ), */
                 child: Material(
                   color: appState.getCurrentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.95).toColor() : Colors.white,
                   child: InkWell(
@@ -882,8 +893,8 @@ class CardLastPerson extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     List<String> time = p.terakhir.split(' ');
-    List<String> date = time[0].split('-'); //List<int>.from(time[0].split('-'));
-    List<String> clock = time[1].split(':'); //time[1].split(':').map((s) => int.parse(s));
+    List<String> date = time[0].split('-');
+    List<String> clock = time[1].split(':');
     DateTime timeAgo = DateTime(
       int.parse(date[0]),
       int.parse(date[1]),
@@ -918,7 +929,9 @@ class CardLastPerson extends StatelessWidget {
                 subtitle: Row(children: <Widget>[
                   Icon(Icons.access_time, color: Colors.grey, size: 14.0,),
                   SizedBox(width: 4.0,),
-                  Text(timeago.format(timeAgo, locale: 'id'), style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
+                  Expanded(
+                    child: Text(timeago.format(timeAgo, locale: 'id'), style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
+                  ),
                 ],),
                 trailing: IconButton(
                   icon: Icon(MdiIcons.closeCircle),
@@ -927,25 +940,6 @@ class CardLastPerson extends StatelessWidget {
                   onPressed: () {},
                 ),
               ),
-              /* child: Padding(
-                padding: EdgeInsets.all(8.0),
-                child: Row(children: <Widget>[
-                  CircleAvatar(backgroundImage: NetworkImage(p.foto),),
-                  SizedBox(width: 15.0,),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                    Text(p.namaLengkap, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),),
-                    SizedBox(height: 2.0,),
-                    Row(children: <Widget>[
-                      Icon(Icons.access_time, color: Colors.grey, size: 14.0,),
-                      SizedBox(width: 4.0,),
-                      Text(p.terakhir, style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
-                    ],),
-                  ],)),
-                  SizedBox(width: 10.0,),
-                  Icon(MdiIcons.closeCircle, size: 18.0, color: Colors.grey,),
-                  SizedBox(width: 5.0,),
-                ],),
-              ), */
             ),
           ],),
         ),

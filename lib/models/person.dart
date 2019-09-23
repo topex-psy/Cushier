@@ -63,6 +63,8 @@ enum PersonLevel {
 class PersonApi {
   final String uid;
   final int idLevel;
+  final int idUsaha;
+  final int idOutlet;
   final String level;
   final String namaLengkap;
   final String tanggalLahir;
@@ -79,6 +81,8 @@ class PersonApi {
   PersonApi({
     @required this.uid,
     @required this.idLevel,
+    this.idUsaha,
+    this.idOutlet,
     this.level,
     this.namaLengkap,
     this.tanggalLahir,
@@ -97,6 +101,8 @@ class PersonApi {
     return res == null ? PersonApi(uid: null, idLevel: null) : PersonApi(
       uid: res['UID'],
       idLevel: int.parse(res['ID_LEVEL']),
+      idUsaha: int.parse(res['ID_USAHA'] ?? '0'),
+      idOutlet: int.parse(res['ID_OUTLET'] ?? '0'),
       level: res['LEVEL'],
       namaLengkap: res['NAMA_LENGKAP'],
       tanggalLahir: res['TANGGAL_LAHIR'],
@@ -108,7 +114,7 @@ class PersonApi {
       email: res['EMAIL'],
       noHP: res['NO_HP'],
       foto: res['FOTO'],
-      terakhir: res['LAST_LOGIN'],
+      terakhir: res['LAST_LOGOUT'] ?? res['LAST_LOGIN'],
     );
   }
 }
@@ -166,7 +172,7 @@ class StatusApi {
   }
 }
 
-Future<dynamic> getListPersons({uids = ""}) async {
+Future<dynamic> getListPersons({String uids = ""}) async {
   try {
     final http.Response response = await http.get(
       Uri.encodeFull(APP_HOST + "api/get/person?uids=$uids"),

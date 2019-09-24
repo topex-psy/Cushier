@@ -2,7 +2,6 @@ import 'models/person.dart';
 import 'package:flutter/material.dart';
 import 'package:intervalprogressbar/intervalprogressbar.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-//import 'package:percent_indicator/percent_indicator.dart';
 import 'models/company.dart';
 import 'utils/utils.dart';
 import 'utils/widgets.dart';

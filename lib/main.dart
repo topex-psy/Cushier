@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:badges/badges.dart';
+import 'package:expandable/expandable.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -31,15 +32,15 @@ class AppState with ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isStarted => _isStarted;
 
-  void setLoading(bool loading) {
+  set isLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
-  void setStarted() {
+  set isStarted(bool started) {
     _isStarted = true;
     notifyListeners();
   }
-  void setStartedWithPerson(PersonApi person) {
+  set startWithPerson(PersonApi person) {
     _currentPerson = person;
     _isStarted = true;
     notifyListeners();
@@ -47,24 +48,24 @@ class AppState with ChangeNotifier {
 
   //current person
   PersonApi _currentPerson;
-  PersonApi get me => _currentPerson;
-  void setCurrentPerson(PersonApi person) {
+  PersonApi get currentPerson => _currentPerson;
+  set currentPerson(PersonApi person) {
     _currentPerson = person;
     notifyListeners();
   }
 
   //current scaffold key
   GlobalKey<ScaffoldState> _currentScaffoldKey;
-  GlobalKey<ScaffoldState> get getCurrentScaffoldKey => _currentScaffoldKey;
-  void setCurrentScaffoldKey(GlobalKey<ScaffoldState> key) {
+  GlobalKey<ScaffoldState> get currentScaffoldKey => _currentScaffoldKey;
+  set currentScaffoldKey(GlobalKey<ScaffoldState> key) {
     _currentScaffoldKey = key;
     notifyListeners();
   }
 
   //current menu
   int _currentMenu = -1;
-  int get getCurrentMenu => _currentMenu;
-  void setCurrentMenu(int indeks) {
+  int get currentMenu => _currentMenu;
+  set currentMenu(int indeks) {
     _currentMenu = indeks;
     notifyListeners();
   }
@@ -75,7 +76,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     assert(isDebugMode = true);
     return ChangeNotifierProvider<AppState>(
-      builder: (_) => AppState(),
+      builder: (context) => AppState(),
       child: MaterialApp(
         title: APP_NAME,
         theme: ThemeData(
@@ -125,7 +126,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       paddingFocus: 10.0,
       clickTarget: (target) {
         if (target.identify.toString() == "Tour 1") {
-          appState.setCurrentMenu(3);
+          appState.currentMenu = 3;
         }
         print(target);
       },
@@ -147,30 +148,30 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       PersonApi me = results['me'];
       if (isFirstRun) {
         results = await Navigator.of(context).push(TransparentRoute(builder: (_) => Intro()));
-        appState.setCurrentMenu(1);
-        appState.setStarted();
+        appState.currentMenu = 1;
+        appState.isStarted = true;
         _showTour();
       } else if (me != null) {
         print("SET STARTED WITH PERSON: ${me?.namaLengkap}");
-        appState.setStartedWithPerson(me);
+        appState.startWithPerson = me;
       } else {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String rememberMe = prefs.getString('rememberMe');
         if (rememberMe != null) {
-          appState.setLoading(true);
+          appState.isLoading = true;
           List<String> rememberData = rememberMe.split("|");
           getPerson(rememberData[1]).then((p) {
             print("DATA SAYA BERHASIL DIMUAT: ${p?.namaLengkap}");
-            LoginForm(p).show(doOnDismiss: () => appState.setStarted());
+            LoginForm(p).show(doOnDismiss: () => appState.isStarted = true);
           }).catchError((e) {
             print("DATA SAYA ERROOOOOOOOOOOOR 2: $e");
-            appState.setStarted();
+            appState.isStarted = true;
           }).whenComplete(() {
             print("DATA SAYA DONEEEEEEEEEEEEE 2!");
-            appState.setLoading(false);
+            appState.isLoading = false;
           });
         } else {
-          appState.setStarted();
+          appState.isStarted = true;
         }
       }
     }
@@ -235,47 +236,13 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       ),
     );
 
-    /* _targets.add(
-      TargetFocus(
-        identify: "Tour 3",
-        keyTarget: keyTour3,
-        contents: [
-          ContentTarget(
-            align: AlignContent.right,
-            child: Container(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    "Title lorem ipsum",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 20.0
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(top: 10.0),
-                    child: Text("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin pulvinar tortor eget maximus iaculis.",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    ); */
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final appState = Provider.of<AppState>(context);
       SharedPreferences.getInstance().then((prefs) {
         int lastMenuOpen = prefs.getInt('lastMenuOpen') ?? -1;
-        if (lastMenuOpen > -1) appState.setCurrentMenu(lastMenuOpen);
+        if (lastMenuOpen > -1) appState.currentMenu = lastMenuOpen;
       });
-      appState.setCurrentScaffoldKey(_scaffoldKey);
+      appState.currentScaffoldKey = _scaffoldKey;
       print("LAUNCH SPLASH SCREEN!");
       _splashScreen();
     });
@@ -294,8 +261,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     return WillPopScope(
       onWillPop: () async {
-        if (appState.getCurrentMenu > -1) {
-          appState.setCurrentMenu(-1);
+        if (appState.currentPerson == null && appState.currentMenu > -1) {
+          appState.currentMenu = -1;
           return false;
         }
         return h.showConfirm(
@@ -320,14 +287,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             ),
           ) : Container(),
           actions: appState.isStarted ? <Widget>[
-            appState.me == null ? SizedBox() : Badge(
+            appState.currentPerson == null ? SizedBox() : Badge(
               badgeColor: Colors.redAccent,
               badgeContent: Text("3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Colors.white)), //TODO num notif
               position: BadgePosition.topRight(top: -3.0, right: 3.0),
               child: IconButton(icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: () {},),
             ),
             PopupMenuButton<String>(
-              icon: Icon(appState.me == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
+              icon: Icon(appState.currentPerson == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
               tooltip: "Menu",
               offset: Offset(0, 10.0),
               onSelected: (String value) {
@@ -345,7 +312,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         logout({'uid': uid}).then((status) {
                           print("POST LOGOUT STATUS: ${status?.status}");
                           print("POST LOGOUT PESAN: ${status?.message}");
-                          appState.setCurrentPerson(null);
+                          appState.currentPerson = null;
                         });
                       });
                     });
@@ -354,7 +321,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               },
               itemBuilder: (BuildContext context) {
                 return _menu.map<PopupMenuEntry<String>>((menu) {
-                  if (menu.isNonGuest && appState.me == null) return null;
+                  if (menu.isNonGuest && appState.currentPerson == null) return null;
                   return menu.teks.isEmpty ? PopupMenuDivider(height: 10.0) : PopupMenuItem(value: menu.value, child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: <Widget>[
                     Icon(menu.icon, color: Colors.grey,),
                     SizedBox(width: 8.0,),
@@ -370,7 +337,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           child: Stack(children: <Widget>[
             Positioned.fill(child: Container(
               child: SingleChildScrollView(
-                child: appState.me == null ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                child: appState.currentPerson == null ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                   SizedBox(height: 25.0,),
                   Column(
                     children: listPersonLevel.map((int i, PersonLevelInfo t) {
@@ -387,7 +354,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     child: h.html('Anda harus menyetujui <a href="${APP_HOST}terms">Syarat Aturan</a> dan <a href="${APP_HOST}privacy">Kebijakan Privasi</a>', textStyle: TextStyle(fontSize: 13.0)),
                   ),
                   SizedBox(height: 75.0,),
-                ],) : Dashboard(me: appState.me),
+                ],) : Dashboard(me: appState.currentPerson),
               ),
             ),),
             Positioned(left: 0, right: 0, top: 0, child: IgnorePointer(child: Container(
@@ -436,6 +403,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   bool _introDone = false;
 
   List<PersonApi> _lastPersons = [];
+  ExpandableController _expandableController;
 
   _getLastPersons(String uids) {
     print("_getLastPersons ${widget.info.judul}: $uids");
@@ -463,7 +431,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   Future _cekLastPersons() async {
     final appState = Provider.of<AppState>(context);
 
-    if (appState.me == null && appState.isStarted) _introAnimation();
+    if (appState.currentPerson == null && appState.isStarted) _introAnimation();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> lastPersons = prefs.getStringList('lastPersons') ?? [];
@@ -482,6 +450,17 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _expandableController = ExpandableController()..addListener(() {
+      final appState = Provider.of<AppState>(context);
+      if (_expandableController.expanded) {
+        appState.currentMenu = widget.pos;
+        print("CURRENT MENU = ${widget.pos}");
+        _animationController.reset();
+        _animationController.forward();
+      } else {
+        if (appState.currentMenu == widget.pos) appState.currentMenu = -1;
+      }
+    });
     _animationController = AnimationController(duration: Duration(milliseconds: 300), vsync: this);
     _animation = Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(
       parent: _animationController,
@@ -504,14 +483,22 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
 
   @override
   void didUpdateWidget(CardMenu oldWidget) {
-    print("DID UPDATE WIDGET ${widget.info.judul}!!!!!");
-    final appState = Provider.of<AppState>(context);
-    if (appState.isStarted) _introAnimation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      print("DID UPDATE WIDGET ${widget.info.judul}!!!!!");
+      final appState = Provider.of<AppState>(context);
+      if (appState.isStarted) {
+        _introAnimation();
+        if (appState.currentMenu != widget.pos && _expandableController.expanded) {
+          _expandableController.toggle();
+        }
+      }
+    });
     super.didUpdateWidget(oldWidget);
   }
 
   @override
   void dispose() {
+    _expandableController.dispose();
     _animationController.dispose();
     _introController.dispose();
     super.dispose();
@@ -523,17 +510,10 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
     Future.delayed(Duration(milliseconds: 500 + widget.pos * 150), () {
       _introController.forward();
     });
-  }
 
-  _toggleIt() {
     final appState = Provider.of<AppState>(context);
-    print("TOGGLE CARD MENU ${widget.pos}: ${widget.info.judul}");
-    if (appState.getCurrentMenu == widget.pos) {
-      appState.setCurrentMenu(-1);
-    } else {
-      appState.setCurrentMenu(widget.pos);
-      _animationController.reset();
-      _animationController.forward();
+    if (appState.currentMenu == widget.pos && !_expandableController.expanded) {
+      _expandableController.toggle();
     }
   }
 
@@ -542,8 +522,8 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
     a.scanQR().then((uid) {
       if (uid.isNotEmpty) {
         print("BARCODE BERHASIL = $uid");
-        h.showSnackbar("BARCODE BERHASIL = $uid", scaffoldKey: appState.getCurrentScaffoldKey);
-        appState.setLoading(true);
+        h.showSnackbar("BARCODE BERHASIL = $uid", scaffoldKey: appState.currentScaffoldKey);
+        appState.isLoading = true;
 
         getPerson(uid).then((p) {
           print("DATA PERSON BERHASIL DIMUAT!");
@@ -553,7 +533,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
           h.failAlertLogin();
         }).whenComplete(() {
           print("DATA PERSON DONEEEEEEEEEEEEE!");
-          appState.setLoading(false);
+          appState.isLoading = false;
         });
       }
     });
@@ -566,7 +546,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
       if (results != null && results.containsKey('me')) {
         print("REGISTER ADMIN RESULT = $results");
         PersonApi me = results['me'];
-        appState.setCurrentPerson(me);
+        appState.currentPerson = me;
       }
     } else _scan();
   }
@@ -579,119 +559,115 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+
     return AnimatedBuilder(
-        animation: _introController,
-        builder: (BuildContext context, Widget child) {
-          return Transform.scale(
-            scale: 1.0 + _intro.value * 0.3,
-            //transform: Matrix4.translationValues(0, _intro.value * (100.0 + widget.pos * 0.0), 0)..scale(1.0 + _intro.value * 0.3),
-            child: Opacity(
-              opacity: _intro.value + 1.0,
-              child: Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-                clipBehavior: Clip.antiAlias,
-                elevation: 12.0,
-                key: widget.keyTour,
-                margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-                /* shape: ContinuousRectangleBorder(
-                  borderRadius: BorderRadius.circular(40.0),
-                  side: BorderSide(
-                    color: appState.getCurrentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.85).toColor() : Colors.grey[350],
-                    width: appState.getCurrentMenu == widget.pos ? 4.0 : 1.0,
-                  ),
-                ), */
-                child: Material(
-                  color: appState.getCurrentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.95).toColor() : Colors.white,
-                  child: InkWell(
-                    splashColor: appState.getCurrentMenu == widget.pos ? Colors.transparent : widget.info.warna.withOpacity(0.1),
-                    highlightColor: appState.getCurrentMenu == widget.pos ? Colors.transparent : widget.info.warna.withOpacity(0.1),
-                    onTap: _toggleIt,
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                      child: AnimatedBuilder(
-                        animation: _animationController,
-                        builder: (BuildContext context, Widget child) {
-                          return Column(children: <Widget>[
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: <Widget>[
-                                Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.getCurrentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
-                                SizedBox(width: 12.0,),
-                                Expanded(
-                                  child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                                    SizedBox(height: 2.0,),
-                                    Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
-                                    SizedBox(height: 6.0,),
-                                    Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
-                                    SizedBox(height: 6.0,),
-                                  ],),
-                                ),
-                                SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
-                                Transform.rotate(
-                                  angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
-                                  child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
-                                ),
-                              ],
-                            ),
+      animation: _introController,
+      builder: (BuildContext context, Widget child) {
+        return Transform.scale(
+          scale: 1.0 + _intro.value * 0.3,
+          //transform: Matrix4.translationValues(0, _intro.value * (100.0 + widget.pos * 0.0), 0)..scale(1.0 + _intro.value * 0.3),
+          child: Opacity(
+            opacity: _intro.value + 1.0,
+            child: ExpandableNotifier(
+              child: ScrollOnExpand(
+                child: Card(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CARD_RADIUS)),
+                  clipBehavior: Clip.antiAlias,
+                  elevation: CARD_ELEVATION,
+                  key: widget.keyTour,
+                  margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
+                  child: Container(
+                    padding: EdgeInsets.all(CARD_PADDING),
+                    color: appState.currentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.95).toColor() : Colors.white,
+                    child: AnimatedBuilder(
+                      animation: _animationController,
+                      builder: (BuildContext context, Widget child) {
+                        Widget expandedWidget = Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            SizedBox(height: 8.0,),
                             SizedBox(
-                              height: appState.getCurrentMenu == widget.pos ? (_lastPersons.length * 70.0 + 70.0) : 0.0,
-                              child: Container(
-                                child: AnimatedOpacity(
-                                  opacity: appState.getCurrentMenu == widget.pos ? 1.0 : 0.0,
-                                  duration: Duration(milliseconds: 200),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      SizedBox(height: 8.0,),
-                                      Expanded(
-                                        child: _lastPersons.isEmpty ? Container() : ListView.builder(
-                                          physics: NeverScrollableScrollPhysics(),
-                                          itemCount: _lastPersons.length,
-                                          itemExtent: 70.0,
-                                          itemBuilder: (context, index) {
-                                            double offset = max(0, 200.0 - index * 50.0);
-                                            return Transform.translate(
-                                              offset: Offset(-offset + offset * _animation.value, 0),
-                                              child: CardLastPerson(_lastPersons[index]),
-                                            );
-                                          },
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 55.0,
-                                        child: Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-                                          FlatButton(
-                                            child: Row(
-                                              children: <Widget>[
-                                                Icon(MdiIcons.login, size: 15.0, color: widget.info.warna ?? Colors.lightBlue,),
-                                                SizedBox(width: 5.0,),
-                                                Text("Login", style: TextStyle(color: widget.info.warna ?? Colors.lightBlue, fontWeight: FontWeight.bold),),
-                                              ],
-                                            ),
-                                            onPressed: _login,
-                                          ),
-                                          SizedBox(height: 44.0, child: UiButton(color: widget.info.warna ?? Colors.lightBlue, teks: widget.info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: widget.info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
-                                        ],),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                              height: (_lastPersons.length * 70.0 + (_lastPersons.isEmpty ? 0.0 : 8.0)),
+                              child: ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: _lastPersons.length,
+                                itemExtent: 70.0,
+                                itemBuilder: (context, index) {
+                                  double offset = max(0, 200.0 - index * 50.0);
+                                  return Transform.translate(
+                                    offset: Offset(-offset + offset * _animation.value, 0),
+                                    child: CardLastPerson(_lastPersons[index]),
+                                  );
+                                },
                               ),
                             ),
-                          ],);
-                        }
-                      ),
+                            SizedBox(
+                              height: 55.0,
+                              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+                                FlatButton(
+                                  child: Row(
+                                    children: <Widget>[
+                                      Icon(MdiIcons.login, size: 15.0, color: widget.info.warna ?? Colors.lightBlue,),
+                                      SizedBox(width: 5.0,),
+                                      Text("Login", style: TextStyle(color: widget.info.warna ?? Colors.lightBlue, fontWeight: FontWeight.bold),),
+                                    ],
+                                  ),
+                                  onPressed: _login,
+                                ),
+                                SizedBox(height: 44.0, child: UiButton(color: widget.info.warna ?? Colors.lightBlue, teks: widget.info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: widget.info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
+                              ],),
+                            ),
+                          ],
+                        );
+                        return ExpandablePanel(
+                          controller: _expandableController,
+                          header: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: <Widget>[
+                              Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
+                              SizedBox(width: 12.0,),
+                              Expanded(
+                                child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                                  SizedBox(height: 2.0,),
+                                  Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
+                                  SizedBox(height: 6.0,),
+                                  Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
+                                  SizedBox(height: 6.0,),
+                                ],),
+                              ),
+                              /* SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
+                              Transform.rotate(
+                                angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
+                                child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
+                              ), */
+                            ],
+                          ),
+                          collapsed: Container(),
+                          expanded: expandedWidget,
+                          tapHeaderToExpand: true,
+                          hasIcon: true,
+                        );
+                      }
                     ),
                   ),
                 ),
               ),
             ),
-          );
-        }
+          ),
+        );
+      }
     );
   }
+}
+
+class MenuBar {
+  MenuBar({this.icon, @required this.teks, this.value, this.isNonGuest = false});
+  final IconData icon;
+  final String teks;
+  final String value;
+  final bool isNonGuest;
 }
 
 class LoginForm extends StatefulWidget {
@@ -773,7 +749,7 @@ class _LoginFormState extends State<LoginForm> {
       } else {
         print("FIREBASE USER = ${authResult.user}");
         h.closeAlert();
-        appState.setLoading(true);
+        appState.isLoading = true;
 
         print("STEP 2: cushier login using firebase user id");
         login({'uid': authResult.user.uid, 'pin': sandi}).then((status) {
@@ -783,11 +759,11 @@ class _LoginFormState extends State<LoginForm> {
             firebaseAuth.signOut();
           } else {
             PersonApi p = PersonApi.fromJson(status.result);
-            appState.setCurrentPerson(p);
+            appState.currentPerson = p;
 
             print("STEP 3: save last person, last menu, and remember");
             SharedPreferences.getInstance().then((prefs) {
-              int menuOpen = appState.getCurrentMenu;
+              int menuOpen = appState.currentMenu;
               prefs.setInt('lastMenuOpen', menuOpen);
               if (_rememberMe) prefs.setString('rememberMe', a.generatePersonData(widget.p));
               List<String> lastPersons = prefs.getStringList('lastPersons') ?? [];
@@ -804,7 +780,7 @@ class _LoginFormState extends State<LoginForm> {
           firebaseAuth.signOut();
         }).whenComplete(() {
           print("DATA LOGIN DONEEEEEEEEEEEEE!");
-          appState.setLoading(false);
+          appState.isLoading = false;
         });
       }
     }
@@ -848,17 +824,17 @@ class _LoginFormState extends State<LoginForm> {
                 if (uid.isNotEmpty) {
                   print("BARCODE BERHASIL = $uid");
                   Navigator.of(context).pop();
-                  h.showSnackbar("BARCODE BERHASIL = $uid", scaffoldKey: appState.getCurrentScaffoldKey);
-                  appState.setLoading(true);
+                  h.showSnackbar("BARCODE BERHASIL = $uid", scaffoldKey: appState.currentScaffoldKey);
+                  appState.isLoading = true;
 
                   getPerson(uid).then((p) {
                     if (p == null) {
                       print("DATA SAYA NUUUUUUUUUUUUULL!");
-                      appState.setLoading(false);
+                      appState.isLoading = false;
                       h.failAlertLogin();
                     } else if (p.uid.isEmpty) {
                       print("DATA SAYA INVALIIIIIIIIIID!");
-                      appState.setLoading(false);
+                      appState.isLoading = false;
                       h.failAlertLogin("Akun tidak terdaftar!");
                     } else {
                       print("DATA SAYA BERHASIL DIMUAT!");
@@ -866,7 +842,7 @@ class _LoginFormState extends State<LoginForm> {
                     }
                   }).catchError((e) {
                     print("DATA SAYA ERROOOOOOOOOOOOR 1: $e");
-                    appState.setLoading(false);
+                    appState.isLoading = false;
                     h.failAlertLogin();
                   }).whenComplete(() {
                     print("DATA SAYA DONEEEEEEEEEEEEE 1!");

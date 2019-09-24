@@ -5,12 +5,7 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'models/company.dart';
 import 'models/person.dart';
-
-enum ItemStatus {
-  GOOD,
-  WARNING,
-  DANGER,
-}
+import 'utils/constants.dart';
 
 class Dashboard extends StatelessWidget {
   Dashboard({Key key, this.me}) : super(key: key);
@@ -36,6 +31,7 @@ class DashboardAdmin extends StatefulWidget {
 
 class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStateMixin {
   GlobalKey _showCaseKey1 = GlobalKey();
+  GlobalKey _showCaseKey2 = GlobalKey();
   CompanyApi _company;
   List<String> _companyNames = [];
   String _companyName;
@@ -135,6 +131,13 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                         onChanged: (String newValue) {
                           setState(() {
                             _companyName = newValue;
+                            _isLoading = true;
+                            //TODO set _company
+                          });
+                          Future.delayed(Duration(milliseconds: 2000), () {
+                            setState(() {
+                              _isLoading = false;
+                            });
                           });
                         },
                         items: _companyNames.map<DropdownMenuItem<String>>((String value) {
@@ -175,22 +178,9 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
             SizedBox(height: 15.0,),
             Column(children: <Widget>[
               CardSale(),
-              Row(children: <Widget>[
-                Expanded(child: CardItem(tag: "employee", warna: Colors.blue, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                  Icon(MdiIcons.briefcaseAccount, color: Colors.blue[400], size: 40.0,),
-                  Text("Karyawan", style: TextStyle(fontSize: 18.0, fontFamily: 'FlamanteRoma',),),
-                  Text("10 Operator, 20 Kasir", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
-                ],),),),
-                SizedBox(width: 10.0,),
-                Expanded(child: CardItem(tag: "customer", warna: Colors.orange, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                  Icon(MdiIcons.accountMultiple, color: Colors.orange[400], size: 40.0,),
-                  Text("Konsumen", style: TextStyle(fontSize: 18.0, fontFamily: 'FlamanteRoma',),),
-                  Text("200 Terdaftar, 5 Baru", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
-                ],),),),
-              ],),
               IntrinsicHeight(
                 child: Row(children: <Widget>[
-                  Expanded(child: CardItem(tag: "outlet", warna: Colors.purple, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  Expanded(child: CardItem(tag: "outlet", key: _showCaseKey2, warna: Colors.purple, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                     Icon(MdiIcons.store, color: Colors.purple[400], size: 40.0,),
                     Text("Outlet", style: TextStyle(fontSize: 18.0, fontFamily: 'FlamanteRoma',),),
                     Text("5 Lokasi", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
@@ -224,6 +214,19 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                   ],),),),
                 ],),
               ),
+              Row(children: <Widget>[
+                Expanded(child: CardItem(tag: "employee", warna: Colors.blue, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  Icon(MdiIcons.briefcaseAccount, color: Colors.blue[400], size: 40.0,),
+                  Text("Karyawan", style: TextStyle(fontSize: 18.0, fontFamily: 'FlamanteRoma',),),
+                  Text("10 Operator, 20 Kasir", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
+                ],),),),
+                SizedBox(width: 10.0,),
+                Expanded(child: CardItem(tag: "customer", warna: Colors.orange, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  Icon(MdiIcons.accountMultiple, color: Colors.orange[400], size: 40.0,),
+                  Text("Konsumen", style: TextStyle(fontSize: 18.0, fontFamily: 'FlamanteRoma',),),
+                  Text("200 Terdaftar, 5 Baru", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
+                ],),),),
+              ],),
               CardItem(tag: "promo", warna: Colors.blue, child: Row(children: <Widget>[
                 CircularPercentIndicator(
                   radius: 120.0,
@@ -304,9 +307,9 @@ class _CardItemState extends State<CardItem> {
       case ItemStatus.DANGER: statusColor = Colors.red; break;
     }
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CARD_RADIUS)),
       clipBehavior: Clip.antiAlias,
-      elevation: 12.0,
+      elevation: CARD_ELEVATION,
       margin: EdgeInsets.only(bottom: 10.0),
       color: Colors.white,
       child: Material(
@@ -318,7 +321,7 @@ class _CardItemState extends State<CardItem> {
             print("KLIK CARD = ${widget.tag}");
           },
           child: Padding(
-            padding: EdgeInsets.all(20.0),
+            padding: EdgeInsets.all(CARD_PADDING),
             child: widget.child,
           ),
         ),
@@ -327,30 +330,52 @@ class _CardItemState extends State<CardItem> {
   }
 }
 
-class CardSale extends StatelessWidget {
+class CardSale extends StatefulWidget {
+  @override
+  _CardSaleState createState() => _CardSaleState();
+}
+
+class _CardSaleState extends State<CardSale> {
+  List<String> _listJangkaWaktu = ['Bulan ini','Minggu ini','Hari ini'];
+  String _jangkaWaktu = 'Bulan ini';
+
   @override
   Widget build(BuildContext context) {
     return ExpandableNotifier(
       child: ScrollOnExpand(
         child: Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CARD_RADIUS)),
           clipBehavior: Clip.antiAlias,
-          elevation: 12.0,
+          elevation: CARD_ELEVATION,
           margin: EdgeInsets.only(bottom: 10.0),
           color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Padding(
-                padding: EdgeInsets.all(20.0),
+                padding: EdgeInsets.all(18.0),
                 child: Row(children: <Widget>[
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                      Text("Total Penjualan", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
-                      Text("265K", style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),),
+                    Text("Total Penjualan", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
+                    Text("265K", style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),),
                   ],),
                   SizedBox(width: 20.0,),
-                  Expanded(child: Container(
-                      child: DropdownButton(hint: Text("Hari Ini"), style: TextStyle(fontSize: 14.0),),
+                  Expanded(child: DropdownButton(
+                    value: _jangkaWaktu,
+                    hint: Text("Jangka waktu", style: TextStyle(fontSize: 14.0),),
+                    style: TextStyle(fontSize: 14.0, color: Colors.black87),
+                    onChanged: (String newValue) {
+                      setState(() {
+                        _jangkaWaktu = newValue;
+                        //TODO recalculate sale
+                      });
+                    },
+                    items: _listJangkaWaktu.map<DropdownMenuItem<String>>((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
                   ),),
                   SizedBox(width: 10.0,),
                   Material(

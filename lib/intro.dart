@@ -28,7 +28,7 @@ final pages = [
     color: Colors.green[400],
     hero: 'images/onboarding/cloud.png',
     heroHeight: 230,
-    icon: MdiIcons.cloud,
+    icon: MdiIcons.cloudCheck,
     title: 'Berbasis Cloud',
     body: 'Seluruh data tersimpan pada cloud sehingga dapat dipantau di manapun dan kapanpun!',
   ),

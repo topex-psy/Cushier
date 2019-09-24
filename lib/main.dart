@@ -9,6 +9,7 @@ import 'package:expandable/expandable.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:theme_provider/theme_provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'models/person.dart';
@@ -77,19 +78,32 @@ class MyApp extends StatelessWidget {
     assert(isDebugMode = true);
     return ChangeNotifierProvider<AppState>(
       builder: (context) => AppState(),
-      child: MaterialApp(
-        title: APP_NAME,
-        theme: ThemeData(
-          primarySwatch: Colors.pink,
-          scaffoldBackgroundColor: Color(0XFFF8F2FA),
-          fontFamily: "Lato",
-          textTheme: TextTheme(
-            body1: TextStyle(fontSize: 15.0, height: 1.4),
-            body2: TextStyle(fontSize: 13.0, height: 1.4),
+      child: ThemeProvider(
+        themes: [
+          AppTheme.light(), // This is standard light theme (id is default_light_theme)
+          AppTheme.dark(), // This is standard dark theme (id is default_dark_theme)
+          /* AppTheme(
+            id: "custom_theme", // Id(or name) of the theme(Has to be unique)
+            data: ThemeData(  // Real theme data
+              primaryColor: Colors.black,
+              accentColor: Colors.red,
+            ),
+          ), */
+        ],
+        child: MaterialApp(
+          title: APP_NAME,
+          theme: ThemeData(
+            primarySwatch: Colors.pink,
+            scaffoldBackgroundColor: Color(0XFFF8F2FA),
+            fontFamily: "Lato",
+            textTheme: TextTheme(
+              body1: TextStyle(fontSize: 15.0, height: 1.4),
+              body2: TextStyle(fontSize: 13.0, height: 1.4),
+            ),
           ),
+          home: Home(),
+          debugShowCheckedModeBanner: false,
         ),
-        home: Home(),
-        debugShowCheckedModeBanner: false,
       ),
     );
   }
@@ -107,8 +121,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     MenuBar(value: "profile", icon: MdiIcons.account, teks: "Profil Saya", isNonGuest: true),
     MenuBar(value: "account_settings", icon: MdiIcons.cogs, teks: "Pengaturan Akun", isNonGuest: true),
     MenuBar(teks: "", isNonGuest: true),
-    MenuBar(value: "help_center", icon: MdiIcons.libraryBooks, teks: "Pusat Bantuan"),
-    MenuBar(value: "about_us", icon: MdiIcons.informationOutline, teks: "Tentang Kami"),
+    MenuBar(value: "help_center", icon: MdiIcons.humanGreeting, teks: "Pusat Bantuan"),
+    MenuBar(value: "rate_us", icon: MdiIcons.commentMultiple, teks: "Rating & Feedback"),
     MenuBar(value: "logout", icon: MdiIcons.logout, teks: "Keluar", isNonGuest: true),
   ];
 
@@ -143,7 +157,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     final appState = Provider.of<AppState>(context);
     Map results = await Navigator.of(context).push(TransparentRoute(builder: (_) => Splash()));
     if (results != null) {
-      bool isFirstRun = results['isFirstRun']; // || isDebugMode;
+      bool isFirstRun = results['isFirstRun'] || isDebugMode;
       print("FIRST RUUUUUUUUUUUUUUUUUUN = $isFirstRun");
       PersonApi me = results['me'];
       if (isFirstRun) {
@@ -193,7 +207,6 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  SizedBox(height: 30.0,),
                   Text(TOUR_TITLE1, style: TextStyle(
                     fontFamily: 'FlamanteRoma',
                     color: Colors.white,
@@ -281,9 +294,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           titleSpacing: 0.0,
           title: appState.isStarted ? Padding(
             padding: EdgeInsets.only(left: 20.0),
-            child: Hero(
-              tag: "SplashLogo",
-              child: Image.asset("images/logo.png", width: 88.0, height: 40.0, fit: BoxFit.contain,),
+            child: GestureDetector(
+              onTap: () {
+                if (!isDebugMode) return;
+                //h.failAlertInternet();
+                ThemeProvider.controllerOf(context).nextTheme();
+                //ThemeProvider.controllerOf(context).setTheme(default_dark_theme);
+              },
+              child: Hero(
+                tag: "SplashLogo",
+                child: Image.asset("images/logo.png", width: 88.0, height: 40.0, fit: BoxFit.contain,),
+              ),
             ),
           ) : Container(),
           actions: appState.isStarted ? <Widget>[
@@ -351,9 +372,19 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                   SizedBox(height: 35.0,),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
-                    child: h.html('Anda harus menyetujui <a href="${APP_HOST}terms">Syarat Aturan</a> dan <a href="${APP_HOST}privacy">Kebijakan Privasi</a>', textStyle: TextStyle(fontSize: 13.0)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text("©${DateTime.now().year} Taufik Nur Rahmanda", style: TextStyle(fontSize: 13.0),),
+                        SizedBox(height: 10.0,),
+                        h.html(
+                          'Menggunakan aplikasi ini berarti menyetujui <a href="${APP_HOST}terms">Syarat Aturan</a> dan <a href="${APP_HOST}privacy">Kebijakan Privasi</a>',
+                          textStyle: TextStyle(fontSize: 13.0, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: 75.0,),
+                  SizedBox(height: 40.0,),
                 ],) : Dashboard(me: appState.currentPerson),
               ),
             ),),
@@ -558,106 +589,108 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final appState = Provider.of<AppState>(context);
-
-    return AnimatedBuilder(
-      animation: _introController,
-      builder: (BuildContext context, Widget child) {
-        return Transform.scale(
-          scale: 1.0 + _intro.value * 0.3,
-          //transform: Matrix4.translationValues(0, _intro.value * (100.0 + widget.pos * 0.0), 0)..scale(1.0 + _intro.value * 0.3),
-          child: Opacity(
-            opacity: _intro.value + 1.0,
-            child: ExpandableNotifier(
-              child: ScrollOnExpand(
-                child: Card(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CARD_RADIUS)),
-                  clipBehavior: Clip.antiAlias,
-                  elevation: CARD_ELEVATION,
-                  key: widget.keyTour,
-                  margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
-                  child: Container(
-                    padding: EdgeInsets.all(CARD_PADDING),
-                    color: appState.currentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.95).toColor() : Colors.white,
-                    child: AnimatedBuilder(
-                      animation: _animationController,
-                      builder: (BuildContext context, Widget child) {
-                        Widget expandedWidget = Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            SizedBox(height: 8.0,),
-                            SizedBox(
-                              height: (_lastPersons.length * 70.0 + (_lastPersons.isEmpty ? 0.0 : 8.0)),
-                              child: ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: _lastPersons.length,
-                                itemExtent: 70.0,
-                                itemBuilder: (context, index) {
-                                  double offset = max(0, 200.0 - index * 50.0);
-                                  return Transform.translate(
-                                    offset: Offset(-offset + offset * _animation.value, 0),
-                                    child: CardLastPerson(_lastPersons[index]),
-                                  );
-                                },
-                              ),
-                            ),
-                            SizedBox(
-                              height: 55.0,
-                              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
-                                FlatButton(
-                                  child: Row(
-                                    children: <Widget>[
-                                      Icon(MdiIcons.login, size: 15.0, color: widget.info.warna ?? Colors.lightBlue,),
-                                      SizedBox(width: 5.0,),
-                                      Text("Login", style: TextStyle(color: widget.info.warna ?? Colors.lightBlue, fontWeight: FontWeight.bold),),
-                                    ],
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
+        return AnimatedBuilder(
+          animation: _introController,
+          builder: (BuildContext context, Widget child) {
+            return Transform.scale(
+              scale: 1.0 + _intro.value * 0.3,
+              //transform: Matrix4.translationValues(0, _intro.value * (100.0 + widget.pos * 0.0), 0)..scale(1.0 + _intro.value * 0.3),
+              child: Opacity(
+                opacity: _intro.value + 1.0,
+                child: ExpandableNotifier(
+                  child: ScrollOnExpand(
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(CARD_RADIUS)),
+                      clipBehavior: Clip.antiAlias,
+                      elevation: CARD_ELEVATION,
+                      key: widget.keyTour,
+                      margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
+                      child: Container(
+                        padding: EdgeInsets.all(CARD_PADDING),
+                        color: appState.currentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.95).toColor() : Colors.white,
+                        child: AnimatedBuilder(
+                          animation: _animationController,
+                          builder: (BuildContext context, Widget child) {
+                            Widget expandedWidget = Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                SizedBox(height: 8.0,),
+                                SizedBox(
+                                  height: (_lastPersons.length * 70.0 + (_lastPersons.isEmpty ? 0.0 : 8.0)),
+                                  child: ListView.builder(
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: _lastPersons.length,
+                                    itemExtent: 70.0,
+                                    itemBuilder: (context, index) {
+                                      double offset = max(0, 200.0 - index * 50.0);
+                                      return Transform.translate(
+                                        offset: Offset(-offset + offset * _animation.value, 0),
+                                        child: CardLastPerson(_lastPersons[index]),
+                                      );
+                                    },
                                   ),
-                                  onPressed: _login,
                                 ),
-                                SizedBox(height: 44.0, child: UiButton(color: widget.info.warna ?? Colors.lightBlue, teks: widget.info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: widget.info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
-                              ],),
-                            ),
-                          ],
-                        );
-                        return ExpandablePanel(
-                          controller: _expandableController,
-                          header: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
-                              SizedBox(width: 12.0,),
-                              Expanded(
-                                child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                                  SizedBox(height: 2.0,),
-                                  Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
-                                  SizedBox(height: 6.0,),
-                                  Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
-                                  SizedBox(height: 6.0,),
-                                ],),
+                                SizedBox(
+                                  height: 55.0,
+                                  child: Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
+                                    FlatButton(
+                                      child: Row(
+                                        children: <Widget>[
+                                          Icon(MdiIcons.login, size: 15.0, color: widget.info.warna ?? Colors.lightBlue,),
+                                          SizedBox(width: 5.0,),
+                                          Text("Login", style: TextStyle(color: widget.info.warna ?? Colors.lightBlue, fontWeight: FontWeight.bold),),
+                                        ],
+                                      ),
+                                      onPressed: _login,
+                                    ),
+                                    SizedBox(height: 44.0, child: UiButton(color: widget.info.warna ?? Colors.lightBlue, teks: widget.info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: widget.info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
+                                  ],),
+                                ),
+                              ],
+                            );
+                            return ExpandablePanel(
+                              controller: _expandableController,
+                              header: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
+                                  SizedBox(width: 12.0,),
+                                  Expanded(
+                                    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                                      SizedBox(height: 2.0,),
+                                      Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
+                                      SizedBox(height: 6.0,),
+                                      Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
+                                      SizedBox(height: 6.0,),
+                                    ],),
+                                  ),
+                                  /* SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
+                                  Transform.rotate(
+                                    angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
+                                    child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
+                                  ), */
+                                ],
                               ),
-                              /* SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
-                              Transform.rotate(
-                                angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
-                                child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
-                              ), */
-                            ],
-                          ),
-                          collapsed: Container(),
-                          expanded: expandedWidget,
-                          tapHeaderToExpand: true,
-                          hasIcon: true,
-                        );
-                      }
+                              collapsed: Container(),
+                              expanded: expandedWidget,
+                              tapHeaderToExpand: true,
+                              hasIcon: true,
+                            );
+                          }
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
+            );
+          }
         );
-      }
+      },
     );
   }
 }
@@ -886,38 +919,38 @@ class CardLastPerson extends StatelessWidget {
       child: Card(
         color: Colors.white,
         clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
         child: InkWell(
           splashColor: listPersonLevel[p.idLevel].warna.withOpacity(0.1),
           highlightColor: listPersonLevel[p.idLevel].warna.withOpacity(0.1),
           onTap: () => LoginForm(p).show(),
-          child: Row(children: <Widget>[
-            SizedBox(
-              width: 4.0,
-              height: double.infinity,
-              child: Material(color: listPersonLevel[p.idLevel].warna,),
-            ),
-            Expanded(
-              child: ListTile(
-                dense: true,
-                contentPadding: EdgeInsets.only(left: 8.0),
-                leading: CircleAvatar(backgroundImage: NetworkImage(p.foto),),
-                title: Text(p.namaLengkap, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),),
-                subtitle: Row(children: <Widget>[
-                  Icon(Icons.access_time, color: Colors.grey, size: 14.0,),
-                  SizedBox(width: 4.0,),
-                  Expanded(
-                    child: Text(timeago.format(timeAgo, locale: 'id'), style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
-                  ),
-                ],),
-                trailing: IconButton(
-                  icon: Icon(MdiIcons.closeCircle),
-                  iconSize: 18.0,
-                  color: Colors.grey,
-                  onPressed: () {},
-                ),
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                //left: BorderSide(width: 4.0, color: listPersonLevel[p.idLevel].warna),
+                left: BorderSide(width: 4.0, color: Colors.white),
               ),
             ),
-          ],),
+            child: ListTile(
+              dense: true,
+              contentPadding: EdgeInsets.only(left: 8.0),
+              leading: CircleAvatar(backgroundImage: NetworkImage(p.foto),),
+              title: Text(p.namaLengkap, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15.0),),
+              subtitle: Row(children: <Widget>[
+                Icon(Icons.access_time, color: Colors.grey, size: 14.0,),
+                SizedBox(width: 4.0,),
+                Expanded(
+                  child: Text(timeago.format(timeAgo, locale: 'id'), style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
+                ),
+              ],),
+              trailing: IconButton(
+                icon: Icon(MdiIcons.closeCircle),
+                iconSize: 18.0,
+                color: Colors.grey,
+                onPressed: () {},
+              ),
+            ),
+          ),
         ),
       ),
     );

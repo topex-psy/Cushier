@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:audioplayers/audio_cache.dart';
 import 'package:barcode_scan/barcode_scan.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flash/flash.dart';
 import 'package:flutter_html/flutter_html.dart';
 import '../models/person.dart';
 import 'widgets.dart';
@@ -67,8 +68,9 @@ class MyHelper {
   MyHelper(this.context);
 
   AudioCache player = AudioCache();
-  Size screenSize() => MediaQuery.of(context).size;
   playSound(String sound) => player.play(sound);
+
+  Size screenSize() => MediaQuery.of(context).size;
 
   screenPortrait() {
     SystemChrome.setPreferredOrientations([
@@ -101,7 +103,7 @@ class MyHelper {
 
   //fungsi untuk menampilkan popup dialog berisi pesan atau konten apapun
   showAlert({String judul, Widget isi, Widget listView, EdgeInsetsGeometry contentPadding, bool barrierDismissible = true, bool showButton = true, FlatButton customButton, Color warnaAksen, void Function() doOnDismiss}) async {
-    player.play("butt_press.wav");
+    playSound("butt_press.wav");
     await showGeneralDialog(
       barrierColor: Colors.black.withOpacity(0.5),
       barrierDismissible: barrierDismissible,
@@ -142,7 +144,7 @@ class MyHelper {
 
   //fungsi untuk menampilkan popup dialog konfirmasi
   showConfirm({String judul, String pesan, void Function() aksi, void Function() doOnCancel}) async {
-    player.play("butt_press.wav");
+    playSound("butt_press.wav");
     await showGeneralDialog(
       barrierColor: Colors.black.withOpacity(0.5),
       transitionBuilder: (context, a1, a2, widget) {
@@ -217,12 +219,71 @@ class MyHelper {
 
   //fungsi untuk menampilkan popup pesan gagal login
   failAlertInternet([String pesan]) {
-    failAlert("Gagal Memuat", pesan ?? "Terjadi kendala saat memuat data. Harap periksa koneksi internet Anda!");
+    showFlash(
+      context: context,
+      duration: Duration(seconds: 3),
+      persistent: true,
+      builder: (_, controller) {
+        return Flash(
+          controller: controller,
+          backgroundColor: Colors.white,
+          brightness: Brightness.light,
+          boxShadows: [BoxShadow(blurRadius: 12.0)],
+          barrierBlur: 3.0,
+          barrierColor: Colors.black38,
+          barrierDismissible: true,
+          style: FlashStyle.grounded,
+          position: FlashPosition.top,
+          child: FlashBar(
+            title: Text("Gagal Memuat", style: TextStyle(fontFamily: 'FlamanteRoma'),),
+            message: Text(pesan ?? "Terjadi kendala saat memuat data. Harap periksa koneksi internet Anda!"),
+            showProgressIndicator: false,
+            primaryAction: FlatButton(
+              onPressed: () => controller.dismiss(),
+              child: Text('TUTUP', style: TextStyle(color: Colors.amber)),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   //fungsi untuk menampilkan popup pesan gagal login
   failAlertLogin([String pesan]) {
     failAlert("Login Gagal", pesan ?? "Terjadi kendala saat login. Coba kembali nanti!");
+  }
+
+  //fungsi untuk menampilkan toast
+  //ref: https://github.com/sososdk/flash/blob/master/example/lib/main.dart
+  showToast({
+    FlashPosition position = FlashPosition.bottom,
+    Alignment alignment,
+  }) {
+    showFlash(
+      context: context,
+      duration: Duration(seconds: 5),
+      builder: (_, controller) {
+        return Flash(
+          controller: controller,
+          backgroundColor: Colors.black87,
+          borderRadius: BorderRadius.circular(8.0),
+          borderColor: Colors.blue,
+          position: position,
+          alignment: alignment,
+          enableDrag: false,
+          onTap: () => controller.dismiss(),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: DefaultTextStyle(
+              style: TextStyle(color: Colors.white),
+              child: Text(
+                'You can put any message of any length here.',
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   //fungsi yang mengembalikan teks versi html

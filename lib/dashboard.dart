@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bezier_chart/bezier_chart.dart';
 import 'package:expandable/expandable.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:percent_indicator/percent_indicator.dart';
@@ -124,28 +125,40 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       Text("Halo, ${widget.me.namaLengkap}!", textAlign: TextAlign.start, style: TextStyle(fontSize: 16.0),),
-                      _company == null ? SizedBox() : DropdownButton(
-                        value: _companyName,
-                        hint: Text("Pilih Usaha"),
-                        style: TextStyle(fontSize: 16.0, color: Colors.black87),
-                        onChanged: (String newValue) {
-                          setState(() {
-                            _companyName = newValue;
-                            _isLoading = true;
-                            //TODO set _company
-                          });
-                          Future.delayed(Duration(milliseconds: 2000), () {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          });
-                        },
-                        items: _companyNames.map<DropdownMenuItem<String>>((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
+                      _company == null ? SizedBox() : Card(
+                        margin: EdgeInsets.only(top: 7.0),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
+                        clipBehavior: Clip.antiAlias,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton(
+                              isDense: true,
+                              underline: null,
+                              value: _companyName,
+                              hint: Text("Pilih Usaha"),
+                              style: TextStyle(fontSize: 16.0, color: Colors.black87),
+                              onChanged: (String newValue) {
+                                setState(() {
+                                  _companyName = newValue;
+                                  _isLoading = true;
+                                  //TODO set _company
+                                });
+                                Future.delayed(Duration(milliseconds: 2000), () {
+                                  setState(() {
+                                    _isLoading = false;
+                                  });
+                                });
+                              },
+                              items: _companyNames.map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   )),
@@ -339,6 +352,51 @@ class _CardSaleState extends State<CardSale> {
   List<String> _listJangkaWaktu = ['Bulan ini','Minggu ini','Hari ini'];
   String _jangkaWaktu = 'Bulan ini';
 
+  Widget grafikPenjualan(BuildContext context) {
+    final fromDate = DateTime(2019, 05, 22);
+    final toDate = DateTime.now();
+
+    final date1 = DateTime.now().subtract(Duration(days: 2));
+    final date2 = DateTime.now().subtract(Duration(days: 3));
+
+    return Center(
+      child: Container(
+        color: Colors.pink,
+        height: MediaQuery.of(context).size.height / 2,
+        width: MediaQuery.of(context).size.width,
+        child: BezierChart(
+          fromDate: fromDate,
+          bezierChartScale: BezierChartScale.WEEKLY,
+          toDate: toDate,
+          selectedDate: toDate,
+          series: [
+            BezierLine(
+              label: "Transaksi",
+              onMissingValue: (dateTime) {
+                if (dateTime.day.isEven) {
+                  return 10.0;
+                }
+                return 5.0;
+              },
+              data: [
+                DataPoint<DateTime>(value: 10, xAxis: date1),
+                DataPoint<DateTime>(value: 50, xAxis: date2),
+              ],
+            ),
+          ],
+          config: BezierChartConfig(
+            verticalIndicatorStrokeWidth: 3.0,
+            verticalIndicatorColor: Colors.black26,
+            showVerticalIndicator: true,
+            verticalIndicatorFixedPosition: false,
+            backgroundColor: Colors.pink,
+            footerHeight: 50.0,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ExpandableNotifier(
@@ -359,7 +417,7 @@ class _CardSaleState extends State<CardSale> {
                     Text("Total Penjualan", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
                     Text("265K", style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),),
                   ],),
-                  SizedBox(width: 20.0,),
+                  SizedBox(width: 15.0,),
                   Expanded(child: DropdownButton(
                     value: _jangkaWaktu,
                     hint: Text("Jangka waktu", style: TextStyle(fontSize: 14.0),),
@@ -384,14 +442,14 @@ class _CardSaleState extends State<CardSale> {
                     borderRadius: BorderRadius.circular(25.0),
                     child: Padding(
                       padding: EdgeInsets.all(12.0),
-                      child: Icon(MdiIcons.chartLineVariant, color: Colors.white, size: 36.0,),
+                      child: Icon(MdiIcons.chartTimelineVariant, color: Colors.white, size: 36.0,),
                     ),
                   ),
                 ],),
               ),
               Expandable(
                 collapsed: Container(),
-                expanded: Container(height: 200, color: Colors.pink,),
+                expanded: Container(height: MediaQuery.of(context).size.height / 2, color: Colors.pink, child: grafikPenjualan(context),),
               ),
               Divider(height: 1,),
               Builder(
@@ -455,7 +513,7 @@ class _WelcomeState extends State<Welcome> with SingleTickerProviderStateMixin {
         return Opacity(
           opacity: _animation.value,
           child: Column(children: <Widget>[
-            Icon(MdiIcons.chartLineVariant, color: Colors.grey, size: 100.0,),
+            Icon(MdiIcons.chartBubble, color: Colors.grey, size: 100.0,),
             SizedBox(height: 10.0,),
             Text("Mempersiapkan ...", style: TextStyle(color: Colors.grey),),
           ],),

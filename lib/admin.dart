@@ -351,7 +351,7 @@ class _RegisterAdminState extends State<RegisterAdmin> {
               max: 3,
               progress: _tahap,
               intervalSize: 2,
-              size: Size(h.screenSize().width - 200.0, 4.0),
+              size: Size(MediaQuery.of(context).size.width - 200.0, 4.0),
               highlightColor: Theme.of(context).primaryColor,
               defaultColor: Colors.grey[400],
               intervalColor: Colors.transparent,
@@ -359,7 +359,7 @@ class _RegisterAdminState extends State<RegisterAdmin> {
               radius: 2.0,
             ),),
             /* Positioned(top: 0, right: 0, child: LinearPercentIndicator(
-              width: h.screenSize().width - 200.0,
+              width: MediaQuery.of(context).size.width - 200.0,
               lineHeight: 4.0,
               animation: false,
               percent: (_pageValue + 1.0) / 3.0,

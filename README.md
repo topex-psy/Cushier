@@ -1,5 +1,9 @@
 # Cushier
 
+![Cushier Logo](https://raw.githubusercontent.com/topex-psy/Cushier/master/images/logo.png)
+
+![Cushier Logo](images/logo.png?raw=true "Cushier Logo")
+
 Mesin Kasir di Ponsel Anda!
 
 ## Apa itu Cushier?

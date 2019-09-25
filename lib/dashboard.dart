@@ -324,9 +324,8 @@ class _CardItemState extends State<CardItem> {
       clipBehavior: Clip.antiAlias,
       elevation: CARD_ELEVATION,
       margin: EdgeInsets.only(bottom: 10.0),
-      color: Colors.white,
       child: Material(
-        color: widget.status == null ? Colors.white : statusColor.withOpacity(0.1),
+        color: widget.status == null ? Colors.transparent : statusColor.withOpacity(0.1),
         child: InkWell(
           splashColor: widget.warna?.withOpacity(0.1),
           highlightColor: widget.warna?.withOpacity(0.1),
@@ -406,7 +405,6 @@ class _CardSaleState extends State<CardSale> {
           clipBehavior: Clip.antiAlias,
           elevation: CARD_ELEVATION,
           margin: EdgeInsets.only(bottom: 10.0),
-          color: Colors.white,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[

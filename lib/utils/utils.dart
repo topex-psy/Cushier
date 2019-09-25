@@ -5,7 +5,9 @@ import 'package:barcode_scan/barcode_scan.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash/flash.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:theme_provider/theme_provider.dart';
 import '../models/person.dart';
+import 'constants.dart';
 import 'widgets.dart';
 
 MyHelper h;
@@ -13,9 +15,6 @@ MyAppHelper a;
 bool isDebugMode = false;
 
 final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
-
-const int FAIL_DEFAULT = 0;
-const int FAIL_USER_NOT_FOUND = 1;
 
 class MyAppHelper {
   final BuildContext context;
@@ -41,8 +40,19 @@ class MyAppHelper {
     } catch (e) {
       print("BARCODE GAGAL = Unknown error: $e");
     }
-    h.playSound("beep.mp3");
+    h.playSound(barcode.isEmpty
+      ? "scan_error.mp3"
+      : "scan_beep.mp3"
+    );
     return barcode;
+  }
+
+  Color uiCardSecondaryColor() {
+    return ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.white : Color(0XFF383234);
+  }
+
+  Color uiAppBarColor() {
+    return ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.white : Theme.of(context).primaryColor;
   }
 
   //firebase login with email & password

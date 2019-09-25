@@ -2,7 +2,9 @@ import 'models/person.dart';
 import 'package:flutter/material.dart';
 import 'package:intervalprogressbar/intervalprogressbar.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:theme_provider/theme_provider.dart';
 import 'models/company.dart';
+import 'utils/constants.dart';
 import 'utils/utils.dart';
 import 'utils/widgets.dart';
 
@@ -201,6 +203,8 @@ class _RegisterAdminState extends State<RegisterAdmin> {
     h = MyHelper(context);
     a = MyAppHelper(context);
 
+    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
     return WillPopScope(
       onWillPop: () async {
         _prev();
@@ -209,12 +213,12 @@ class _RegisterAdminState extends State<RegisterAdmin> {
       child: Scaffold(
         key: _scaffoldKey,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: a.uiAppBarColor(),
           elevation: 0.0,
           title: Row(children: <Widget>[
             Padding(
               padding: EdgeInsets.only(left: 20.0),
-              child: Image.asset("images/logo.png", width: 88.0, height: 40.0, fit: BoxFit.contain,),
+              child: NavLogo(),
             ),
             Expanded(
               child: Padding(
@@ -332,13 +336,18 @@ class _RegisterAdminState extends State<RegisterAdmin> {
                       shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(40.0)),
                       child: Padding(
                         padding: EdgeInsets.all(20.0),
-                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                          FormCaption(no: 3, icon: MdiIcons.accountTie, teks: "Data Login", warna: widget.warna,),
-                          CardInput(icon: MdiIcons.email, placeholder: "Alamat email", tipe: TextInputType.emailAddress, controller: _emailController, focusNode: _emailFocusNode),
-                          CardInput(icon: MdiIcons.lock, placeholder: "Buat PIN", info: "6 Angka", jenis: CardInputType.PIN, controller: _sandiController, focusNode: _sandiFocusNode),
-                          CardInput(icon: MdiIcons.lock, placeholder: "Konfirmasi PIN", jenis: CardInputType.PIN, controller: _konfirmSandiController, focusNode: _konfirmSandiFocusNode),
-                          BottomNav(tahap: 3, prev: _prev, next: _next, warna: widget.warna),
-                        ],),
+                        child: Form(
+                          key: _formKey,
+                          autovalidate: false,
+                          onChanged: () {},
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                            FormCaption(no: 3, icon: MdiIcons.accountTie, teks: "Data Login", warna: widget.warna,),
+                            CardInput(icon: MdiIcons.email, placeholder: "Alamat email", tipe: TextInputType.emailAddress, controller: _emailController, focusNode: _emailFocusNode),
+                            CardInput(icon: MdiIcons.lock, placeholder: "Buat PIN", info: "6 Angka", jenis: CardInputType.PIN, controller: _sandiController, focusNode: _sandiFocusNode),
+                            CardInput(icon: MdiIcons.lock, placeholder: "Konfirmasi PIN", jenis: CardInputType.PIN, controller: _konfirmSandiController, focusNode: _konfirmSandiFocusNode),
+                            BottomNav(tahap: 3, prev: _prev, next: _next, warna: widget.warna),
+                          ],),
+                        ),
                       ),
                     ),
                   ),
@@ -352,7 +361,7 @@ class _RegisterAdminState extends State<RegisterAdmin> {
               progress: _tahap,
               intervalSize: 2,
               size: Size(MediaQuery.of(context).size.width - 200.0, 4.0),
-              highlightColor: Theme.of(context).primaryColor,
+              highlightColor: THEME_COLOR,
               defaultColor: Colors.grey[400],
               intervalColor: Colors.transparent,
               intervalHighlightColor: Colors.transparent,
@@ -464,7 +473,7 @@ class FormCaption extends StatelessWidget {
       child: Row(children: <Widget>[
         Icon(icon, color: warna, size: 40.0,),
         SizedBox(width: 8.0,),
-        Text("$teks", style: TextStyle(fontSize: 16.0, fontFamily: 'FlamanteRoma', color: warna),),
+        Text("$teks", style: TextStyle(fontSize: 16.0, fontFamily: 'FlamanteRoma', color: ThemeProvider.themeOf(context).id == THEME_LIGHT ? warna : Colors.white),),
       ],),
     );
   }

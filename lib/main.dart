@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:badges/badges.dart';
 import 'package:expandable/expandable.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:popup_menu/popup_menu.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:theme_provider/theme_provider.dart';
@@ -75,38 +76,85 @@ class AppState with ChangeNotifier {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+
+    //cek apakah aplikasi berjalan dalam mode debug
     assert(isDebugMode = true);
+
+    ThemeData lightTheme = ThemeData(
+      primarySwatch: THEME_COLOR,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: Color(0XFFF8F2FA),
+      fontFamily: "Lato",
+      textTheme: TextTheme(
+        headline: TextStyle(fontSize: 30.0, fontFamily: 'FlamanteRoma'),
+        title: TextStyle(fontSize: 20.0, fontFamily: 'FlamanteRoma'),
+        body1: TextStyle(fontSize: 15.0, height: 1.4),
+        body2: TextStyle(fontSize: 13.0, height: 1.4),
+      ),
+    );
+
+    ThemeData darkTheme = ThemeData(
+      primarySwatch: THEME_COLOR,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: Color(0XFF262224),
+      fontFamily: "Lato",
+      textTheme: TextTheme(
+        headline: TextStyle(fontSize: 30.0, fontFamily: 'FlamanteRoma'),
+        title: TextStyle(fontSize: 20.0, fontFamily: 'FlamanteRoma'),
+        body1: TextStyle(fontSize: 15.0, height: 1.4),
+        body2: TextStyle(fontSize: 13.0, height: 1.4),
+      ),
+    );
+
+    //pake bloc pattern untuk state management
     return ChangeNotifierProvider<AppState>(
       builder: (context) => AppState(),
+
+      //menyediakan tema custom yang dapat dipilih secara runtime
       child: ThemeProvider(
+        saveThemesOnChange: true,
+        loadThemeOnInit: true,
+        defaultThemeId: THEME_LIGHT,
         themes: [
-          AppTheme.light(), // This is standard light theme (id is default_light_theme)
-          AppTheme.dark(), // This is standard dark theme (id is default_dark_theme)
-          /* AppTheme(
-            id: "custom_theme", // Id(or name) of the theme(Has to be unique)
-            data: ThemeData(  // Real theme data
-              primaryColor: Colors.black,
-              accentColor: Colors.red,
-            ),
-          ), */
+          //AppTheme.light(), // This is standard light theme (id is default_light_theme)
+          //AppTheme.dark(), // This is standard dark theme (id is default_dark_theme)
+          AppTheme(
+            id: THEME_LIGHT,
+            description: "$APP_NAME Light Theme",
+            data: lightTheme,
+          ),
+          AppTheme(
+            id: THEME_DARK,
+            description: "$APP_NAME Dark Theme",
+            data: darkTheme,
+          ),
         ],
         child: MaterialApp(
           title: APP_NAME,
-          theme: ThemeData(
-            primarySwatch: Colors.pink,
-            scaffoldBackgroundColor: Color(0XFFF8F2FA),
-            fontFamily: "Lato",
-            textTheme: TextTheme(
-              body1: TextStyle(fontSize: 15.0, height: 1.4),
-              body2: TextStyle(fontSize: 13.0, height: 1.4),
-            ),
-          ),
-          home: Home(),
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          home: ThemeConsumer(child: Home()),
           debugShowCheckedModeBanner: false,
         ),
       ),
     );
   }
+}
+
+class MenuBar {
+  MenuBar({@required this.value, this.icon, this.teks = "", this.isNonGuest = false});
+  final MenuBarValues value;
+  final IconData icon;
+  final String teks;
+  final bool isNonGuest;
+}
+
+enum MenuBarValues {
+  PROFILE,
+  ACCOUNT_SETTINGS,
+  HELP_CENTER,
+  RATE_US,
+  LOGOUT,
 }
 
 class Home extends StatefulWidget {
@@ -118,17 +166,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   List<TargetFocus> _targets = List();
   List<MenuBar> _menu = [
-    MenuBar(value: "profile", icon: MdiIcons.account, teks: "Profil Saya", isNonGuest: true),
-    MenuBar(value: "account_settings", icon: MdiIcons.cogs, teks: "Pengaturan Akun", isNonGuest: true),
-    MenuBar(teks: "", isNonGuest: true),
-    MenuBar(value: "help_center", icon: MdiIcons.humanGreeting, teks: "Pusat Bantuan"),
-    MenuBar(value: "rate_us", icon: MdiIcons.commentMultiple, teks: "Rating & Feedback"),
-    MenuBar(value: "logout", icon: MdiIcons.logout, teks: "Keluar", isNonGuest: true),
+    MenuBar(value: MenuBarValues.PROFILE, icon: MdiIcons.account, teks: "Profil Saya", isNonGuest: true),
+    MenuBar(value: MenuBarValues.ACCOUNT_SETTINGS, icon: MdiIcons.cogs, teks: "Pengaturan Akun", isNonGuest: true),
+    MenuBar(value: null, isNonGuest: true),
+    MenuBar(value: MenuBarValues.HELP_CENTER, icon: MdiIcons.humanGreeting, teks: "Pusat Bantuan"),
+    MenuBar(value: MenuBarValues.RATE_US, icon: MdiIcons.commentMultiple, teks: "Rating & Feedback"),
+    MenuBar(value: MenuBarValues.LOGOUT, icon: MdiIcons.logout, teks: "Keluar", isNonGuest: true),
   ];
 
   GlobalKey keyTour1 = GlobalKey();
   GlobalKey keyTour2 = GlobalKey();
   GlobalKey keyTour3 = GlobalKey();
+  GlobalKey btnNotifKey = GlobalKey();
 
   _showTour() {
     final appState = Provider.of<AppState>(context);
@@ -266,6 +315,57 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  _showNotif() {
+    PopupMenu menu = PopupMenu(
+      // backgroundColor: Colors.teal,
+      // lineColor: Colors.tealAccent,
+      // maxColumn: 2,
+      items: [
+        MenuItem(
+            title: 'Home',
+            // textStyle: TextStyle(fontSize: 10.0, color: Colors.tealAccent),
+            image: Icon(
+              Icons.home,
+              color: Colors.white,
+            )),
+        MenuItem(
+            title: 'Mail',
+            image: Icon(
+              Icons.mail,
+              color: Colors.white,
+            )),
+        MenuItem(
+            title: 'Power',
+            image: Icon(
+              Icons.power,
+              color: Colors.white,
+            )),
+        MenuItem(
+            title: 'Setting',
+            image: Icon(
+              Icons.settings,
+              color: Colors.white,
+            )),
+        MenuItem(
+            title: 'PopupMenu',
+            image: Icon(
+              Icons.menu,
+              color: Colors.white,
+            ))
+      ],
+      onClickMenu: (MenuItemProvider item) {
+        print('notif menu -> ${item.menuTitle}');
+      },
+      stateChanged: (bool isShow) {
+        print('notif menu is ${isShow ? 'showing' : 'closed'}');
+      },
+      onDismiss: () {
+        print('notif menu is dismiss');
+      },
+    );
+    menu.show(widgetKey: btnNotifKey);
+  }
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
@@ -279,54 +379,41 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           return false;
         }
         return h.showConfirm(
-          //judul: "Tutup Aplikasi",
           pesan: "Apakah Anda yakin ingin menutup aplikasi ini?",
           aksi: () => SystemChannels.platform.invokeMethod('SystemNavigator.pop')
         ) ?? false;
       },
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: Color(0XFFF8F2FA),
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
+          backgroundColor: appState.isStarted ? a.uiAppBarColor() : Colors.white,
           elevation: 0.0,
           titleSpacing: 0.0,
           title: appState.isStarted ? Padding(
             padding: EdgeInsets.only(left: 20.0),
-            child: GestureDetector(
-              onTap: () {
-                if (!isDebugMode) return;
-                //h.failAlertInternet();
-                ThemeProvider.controllerOf(context).nextTheme();
-                //ThemeProvider.controllerOf(context).setTheme(default_dark_theme);
-              },
-              child: Hero(
-                tag: "SplashLogo",
-                child: Image.asset("images/logo.png", width: 88.0, height: 40.0, fit: BoxFit.contain,),
-              ),
-            ),
+            child: NavLogo(),
           ) : Container(),
           actions: appState.isStarted ? <Widget>[
             appState.currentPerson == null ? SizedBox() : Badge(
               badgeColor: Colors.redAccent,
               badgeContent: Text("3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Colors.white)), //TODO num notif
               position: BadgePosition.topRight(top: -3.0, right: 3.0),
-              child: IconButton(icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: () {},),
+              child: IconButton(key: btnNotifKey, icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: _showNotif,),
             ),
-            PopupMenuButton<String>(
+            PopupMenuButton<MenuBarValues>(
               icon: Icon(appState.currentPerson == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
               tooltip: "Menu",
               offset: Offset(0, 10.0),
-              onSelected: (String value) {
+              onSelected: (MenuBarValues value) {
                 print("KLIK MENU = $value");
                 switch (value) {
                   //TODO menu action
-                  case "profile": break;
-                  case "account_settings": break;
-                  case "help_center": break;
-                  case "about_us": break;
-                  case "logout":
+                  case MenuBarValues.PROFILE: break;
+                  case MenuBarValues.ACCOUNT_SETTINGS: break;
+                  case MenuBarValues.HELP_CENTER: break;
+                  case MenuBarValues.RATE_US: break;
+                  case MenuBarValues.LOGOUT:
                     firebaseAuth.currentUser().then((user) {
                       String uid = user.uid;
                       firebaseAuth.signOut().then((a) {
@@ -341,9 +428,9 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 }
               },
               itemBuilder: (BuildContext context) {
-                return _menu.map<PopupMenuEntry<String>>((menu) {
+                return _menu.map<PopupMenuEntry<MenuBarValues>>((menu) {
                   if (menu.isNonGuest && appState.currentPerson == null) return null;
-                  return menu.teks.isEmpty ? PopupMenuDivider(height: 10.0) : PopupMenuItem(value: menu.value, child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: <Widget>[
+                  return menu.value == null ? PopupMenuDivider(height: 10.0) : PopupMenuItem(value: menu.value, child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: <Widget>[
                     Icon(menu.icon, color: Colors.grey,),
                     SizedBox(width: 8.0,),
                     Text(menu.teks),
@@ -375,7 +462,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text("©${DateTime.now().year} Taufik Nur Rahmanda", style: TextStyle(fontSize: 13.0),),
+                        Text("©${DateTime.now().year} $APP_AUTHOR", style: TextStyle(fontSize: 13.0),),
                         SizedBox(height: 10.0,),
                         h.html(
                           'Menggunakan aplikasi ini berarti menyetujui <a href="${APP_HOST}terms">Syarat Aturan</a> dan <a href="${APP_HOST}privacy">Kebijakan Privasi</a>',
@@ -388,23 +475,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                 ],) : Dashboard(me: appState.currentPerson),
               ),
             ),),
-            Positioned(left: 0, right: 0, top: 0, child: IgnorePointer(child: Container(
-              height: 20.0,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: FractionalOffset.topCenter,
-                  end: FractionalOffset.bottomCenter,
-                  colors: [
-                    Colors.white.withOpacity(1.0),
-                    Colors.white.withOpacity(0.0),
-                  ],
-                  stops: [
-                    0.0,
-                    1.0,
-                  ]
-                ),
-              ),
-            ),),),
+            appState.isStarted ? TopGradient() : Container(),
             Positioned.fill(child: appState.isStarted && !appState.isLoading ? Container() : Container(
               child: Visibility(visible: appState.isLoading, child: Center(child: LoadingCircle(),),),
               color: Colors.white,
@@ -555,7 +626,6 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
         print("BARCODE BERHASIL = $uid");
         h.showSnackbar("BARCODE BERHASIL = $uid", scaffoldKey: appState.currentScaffoldKey);
         appState.isLoading = true;
-
         getPerson(uid).then((p) {
           print("DATA PERSON BERHASIL DIMUAT!");
           LoginForm(p).show();
@@ -573,7 +643,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   _register() async {
     final appState = Provider.of<AppState>(context);
     if (widget.info.level == PersonLevel.USER_ADMIN) {
-      Map results = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => RegisterAdmin(warna: widget.info.warna)));
+      Map results = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ThemeConsumer(child: RegisterAdmin(warna: widget.info.warna))));
       if (results != null && results.containsKey('me')) {
         print("REGISTER ADMIN RESULT = $results");
         PersonApi me = results['me'];
@@ -609,7 +679,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
                       margin: EdgeInsets.symmetric(horizontal: 15.0, vertical: 5.0),
                       child: Container(
                         padding: EdgeInsets.all(CARD_PADDING),
-                        color: appState.currentMenu == widget.pos ? HSLColor.fromColor(widget.info.warna).withLightness(0.95).toColor() : Colors.white,
+                        color: appState.currentMenu == widget.pos ? widget.info.warna.withOpacity(0.1) : Colors.transparent,
                         child: AnimatedBuilder(
                           animation: _animationController,
                           builder: (BuildContext context, Widget child) {
@@ -653,31 +723,36 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
                             );
                             return ExpandablePanel(
                               controller: _expandableController,
-                              header: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: <Widget>[
-                                  Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
-                                  SizedBox(width: 12.0,),
-                                  Expanded(
-                                    child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                                      SizedBox(height: 2.0,),
-                                      Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
-                                      SizedBox(height: 6.0,),
-                                      Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
-                                      SizedBox(height: 6.0,),
-                                    ],),
-                                  ),
-                                  /* SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
-                                  Transform.rotate(
-                                    angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
-                                    child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
-                                  ), */
-                                ],
+                              header: GestureDetector(
+                                onTap: () {
+                                  _expandableController.toggle();
+                                },
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
+                                    SizedBox(width: 12.0,),
+                                    Expanded(
+                                      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                                        SizedBox(height: 2.0,),
+                                        Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
+                                        SizedBox(height: 6.0,),
+                                        Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
+                                        SizedBox(height: 6.0,),
+                                      ],),
+                                    ),
+                                    /* SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
+                                    Transform.rotate(
+                                      angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
+                                      child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
+                                    ), */
+                                  ],
+                                ),
                               ),
                               collapsed: Container(),
                               expanded: expandedWidget,
-                              tapHeaderToExpand: true,
+                              tapHeaderToExpand: false,
                               hasIcon: true,
                             );
                           }
@@ -695,19 +770,16 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   }
 }
 
-class MenuBar {
-  MenuBar({this.icon, @required this.teks, this.value, this.isNonGuest = false});
-  final IconData icon;
-  final String teks;
-  final String value;
-  final bool isNonGuest;
-}
-
 class LoginForm extends StatefulWidget {
   LoginForm(this.p);
   final PersonApi p;
 
-  show({doOnDismiss}) => h.showAlert(isi: this, showButton: false, warnaAksen: listPersonLevel[p.idLevel]?.warna, doOnDismiss: doOnDismiss);
+  show({doOnDismiss}) => h.showAlert(
+    warnaAksen: listPersonLevel[p.idLevel]?.warna,
+    doOnDismiss: doOnDismiss,
+    showButton: false,
+    isi: this,
+  );
 
   @override
   _LoginFormState createState() => _LoginFormState();
@@ -917,7 +989,7 @@ class CardLastPerson extends StatelessWidget {
 
     return Container(
       child: Card(
-        color: Colors.white,
+        color: a.uiCardSecondaryColor(),
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50.0)),
         child: InkWell(
@@ -927,8 +999,7 @@ class CardLastPerson extends StatelessWidget {
           child: Container(
             decoration: BoxDecoration(
               border: Border(
-                //left: BorderSide(width: 4.0, color: listPersonLevel[p.idLevel].warna),
-                left: BorderSide(width: 4.0, color: Colors.white),
+                left: BorderSide(width: 4.0, color: a.uiCardSecondaryColor()),
               ),
             ),
             child: ListTile(

@@ -54,6 +54,8 @@ dependencies:
   flash: ^1.1.0
   bezier_chart: ^1.0.14
   theme_provider: ^0.3.1
+
+  popup_menu: ^1.0.3
   
 dev_dependencies:
   flutter_test:
@@ -78,7 +80,8 @@ flutter:
 
   assets:
   - assets/butt_press.wav
-  - assets/beep.mp3
+  - assets/scan_beep.mp3
+  - assets/scan_error.wav
   - images/anon.png
   - images/dummy.png
   - images/logo.png

@@ -12,18 +12,26 @@ Cushier adalah aplikasi pengelolaan usaha serta Point of Sale (POS) berbasis clo
 ## TODOs
 
 admin:
+ > peta outlet usaha seluruh indo
+ > statistik jumlah usaha per wilayah
+pengusaha:
  > cetak (employeecard)
  > foto pegawai pake face detector api
  > inactive 1 menit/layar mati masukin pin
 operator:
  > cetak (barcode/customercard/voucher)
  > inactive 1 menit/layar mati masukin pin
+ > pisahkan satuan kg atau unit
+ > opsi nama produk singkat (untuk hemat struk)
 kasir:
  > scan qr (barcode/customerid/voucher)
  > input manual (barcode/customerid/voucher/promo)
  > kirim struk otomatis ke email (khusus member terdaftar)
+ > pisahkan satuan kg atau unit
  > cetak (struk/customercard)
  > customer feedback (persilakan konsumen untuk input)
+ > struk ref mumupuding
+ > kasir multi company
 
 For help getting started with Flutter, view our
 [online documentation](https://flutter.dev/docs), which offers tutorials,

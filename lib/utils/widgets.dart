@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:theme_provider/theme_provider.dart';
+import 'constants.dart';
 
 class LoadingCircle extends StatelessWidget {
   LoadingCircle({this.teks, this.absorb = false, this.noCard = false});
@@ -50,10 +52,11 @@ enum CardInputType {
 }
 
 class CardInput extends StatefulWidget {
-  CardInput({Key key, this.icon, this.placeholder, this.showLabel = true, this.info, this.height = 45.0, this.radius = 30.0, this.borderColor, this.borderWidth = 1.0, this.jenis = CardInputType.TEXT, this.tipe, this.caps, this.controller, this.focusNode, this.initialValue = '', this.aksi, this.klik, this.onChanged, this.marginBottom = 8.0}) : super(key: key);
+  CardInput({Key key, this.icon, this.placeholder, this.showLabel = true, this.info, this.prefiks, this.height = 45.0, this.radius = 30.0, this.borderColor, this.borderWidth = 1.0, this.jenis = CardInputType.TEXT, this.tipe, this.caps, this.controller, this.focusNode, this.initialValue = '', this.aksi, this.klik, this.onChanged, this.marginBottom = 8.0}) : super(key: key);
   final IconData icon;
   final String placeholder;
   final String info;
+  final String prefiks;
   final bool showLabel;
   final double height;
   final double radius;
@@ -75,11 +78,11 @@ class CardInput extends StatefulWidget {
 }
 
 class _CardInputState extends State<CardInput> {
+  EdgeInsetsGeometry _contentPadding = EdgeInsets.symmetric(vertical: 14.0);
+
+  double _fontSize = 15.0;
   bool _viewText;
   Widget _input;
-
-  EdgeInsetsGeometry _contentPadding = EdgeInsets.symmetric(vertical: 14.0);
-  double _fontSize = 15.0;
 
   @override
   void initState() {
@@ -93,7 +96,7 @@ class _CardInputState extends State<CardInput> {
       case CardInputType.TEXT:
         _input = Padding(
           padding: EdgeInsets.only(right: 20.0),
-          child: TextField(
+          child: TextFormField(
             keyboardType: widget.tipe,
             textCapitalization: widget.caps ?? TextCapitalization.none,
             obscureText: !_viewText,
@@ -107,22 +110,29 @@ class _CardInputState extends State<CardInput> {
               FocusScope.of(context).requestFocus(FocusNode());
               widget.klik();
             },
-            onSubmitted: widget.aksi,
+            //onSubmitted: widget.aksi,
+            validator: (String value) {
+              //return value.contains('@') ? 'Do not use the @ char.' : null;
+              return null;
+            },
           ),
         );
         break;
       case CardInputType.PHONE:
         _input = Padding(
           padding: EdgeInsets.only(right: 20.0),
-          child: TextField(
+          child: TextFormField(
             keyboardType: TextInputType.phone,
             style: TextStyle(fontSize: _fontSize),
-            decoration: InputDecoration(contentPadding: _contentPadding, prefixStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: _fontSize), prefix: Text("+62  "), hintText: widget.placeholder, prefixIcon: Icon(widget.icon, size: _fontSize,), border: InputBorder.none),
-            //decoration: InputDecoration(hintText: widget.placeholder, prefixIcon: Icon(widget.icon, size: 16.0,), border: InputBorder.none),
+            decoration: InputDecoration(contentPadding: _contentPadding, prefixStyle: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: _fontSize), prefix: Text(widget.prefiks ?? "+62  "), hintText: widget.placeholder, prefixIcon: Icon(widget.icon, size: _fontSize,), border: InputBorder.none),
             textInputAction: TextInputAction.go,
             controller: widget.controller,
             focusNode: widget.focusNode,
-            onSubmitted: widget.aksi,
+            //onSubmitted: widget.aksi,
+            validator: (String value) {
+              //return value.contains('@') ? 'Do not use the @ char.' : null;
+              return null;
+            },
           ),
         );
         break;
@@ -131,7 +141,7 @@ class _CardInputState extends State<CardInput> {
         _input = Stack(children: <Widget>[
           Padding(
             padding: EdgeInsets.only(right: 40.0),
-            child: TextField(
+            child: TextFormField(
               obscureText: !_viewText,
               enableInteractiveSelection: false,
               keyboardType: widget.jenis == CardInputType.PIN ? TextInputType.number : null,
@@ -146,7 +156,9 @@ class _CardInputState extends State<CardInput> {
               textInputAction: TextInputAction.go,
               controller: widget.controller,
               focusNode: widget.focusNode,
-              onSubmitted: widget.aksi,
+              validator: (String value) {
+                return null;
+              },
             ),
           ),
           Align(
@@ -286,6 +298,25 @@ class UiButton extends StatelessWidget {
   }
 }
 
+class NavLogo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        //if (!isDebugMode) return;
+        showDialog(context: context, builder: (_) => ThemeConsumer(child: ThemeDialog(
+          title: Text("Pilih Tema", style: TextStyle(fontSize: 20.0, fontFamily: 'FlamanteRoma'),),
+          selectedThemeIcon: Icon(MdiIcons.check, color: Colors.white),
+        )));
+      },
+      child: Hero(
+        tag: "SplashLogo",
+        child: Image.asset("images/logo.png", width: 88.0, height: 40.0, fit: BoxFit.contain,),
+      ),
+    );
+  }
+}
+
 class TopGradient extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -296,8 +327,8 @@ class TopGradient extends StatelessWidget {
           begin: FractionalOffset.topCenter,
           end: FractionalOffset.bottomCenter,
           colors: [
-            Colors.white.withOpacity(1.0),
-            Colors.white.withOpacity(0.0),
+            (ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.white : Theme.of(context).primaryColor).withOpacity(1.0),
+            (ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.white : Theme.of(context).primaryColor).withOpacity(0.0),
           ],
           stops: [
             0.0,

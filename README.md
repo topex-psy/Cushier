@@ -1,8 +1,6 @@
 # Cushier
 
-![Cushier Logo](https://raw.githubusercontent.com/topex-psy/Cushier/master/images/logo.png)
-
-![Cushier Logo](images/logo.png?raw=true "Cushier Logo")
+<img src="images/logo.png?raw=true" alt="Cushier Logo" title="Cushier Logo" width="200"/>
 
 Mesin Kasir di Ponsel Anda!
 

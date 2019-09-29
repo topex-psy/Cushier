@@ -11,7 +11,7 @@ import 'utils/widgets.dart';
 const int jumlahTahapDaftar = 3;
 
 class RegisterAdmin extends StatefulWidget {
-  RegisterAdmin({Key key, this.warna}) : super(key: key);
+  RegisterAdmin({Key key, @required this.warna}) : super(key: key);
   final Color warna;
 
   @override
@@ -19,7 +19,9 @@ class RegisterAdmin extends StatefulWidget {
 }
 
 class _RegisterAdminState extends State<RegisterAdmin> {
-  final _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   TextEditingController _namaLengkapController;
   TextEditingController _tanggalLahirController;
   TextEditingController _nomorPonselController;
@@ -115,9 +117,7 @@ class _RegisterAdminState extends State<RegisterAdmin> {
       h.showConfirm(
         judul: "Batal Mendaftar",
         pesan: "Apakah Anda yakin ingin membatalkan pendaftaran akun?",
-        aksi: () {
-          Navigator.of(context).pop();
-        },
+        aksi: Navigator.of(context).pop,
       );
     } else {
       _pageController.previousPage(duration: Duration(milliseconds: 500), curve: Curves.easeOutQuint);
@@ -134,13 +134,23 @@ class _RegisterAdminState extends State<RegisterAdmin> {
 
     if (_tahap == jumlahTahapDaftar) {
       h.loadAlert(teks: "Mendaftarkan akun ...");
-      if (_tanggalLahir.isEmpty) {
+      if (_namaLengkapController.text.isEmpty) {
+        _invalid("Data Belum Lengkap", "Harap masukkan nama lengkap Anda!", 0);
+      } else if (_tanggalLahir.isEmpty) {
         _invalid("Data Belum Lengkap", "Harap masukkan tanggal lahir Anda!", 0);
+      } else if (_nomorPonselController.text.isEmpty) {
+        _invalid("Data Belum Lengkap", "Harap masukkan nomor ponsel Anda!", 0);
+      } else if (_namaUsahaController.text.isEmpty) {
+        _invalid("Data Belum Lengkap", "Harap masukkan nama usaha Anda!", 1);
       } else if (_idKategoriUsaha == null) {
         _invalid("Data Belum Lengkap", "Harap pilih kategori usaha Anda!", 1);
+      } else if (_emailController.text.isEmpty) {
+        _invalid("Data Belum Lengkap", "Harap masukkan alamat email Anda!", 2);
+      } else if (_sandiController.text.isEmpty) {
+        _invalid("Data Belum Lengkap", "Harap tentukan nomor PIN Anda!", 2);
       } else if (_sandiController.text != _konfirmSandiController.text) {
         _invalid("Konfirmasi PIN Tidak Cocok", "Harap periksa kembali PIN dan konfirmasi PIN Anda!", 2);
-      } else {
+      } else if (_formKey.currentState.validate()) {
         print(
           "\n nama_lengkap      = ${_namaLengkapController.text}" +
           "\n gender            = $_jenisKelamin" +
@@ -203,8 +213,6 @@ class _RegisterAdminState extends State<RegisterAdmin> {
     h = MyHelper(context);
     a = MyAppHelper(context);
 
-    final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
     return WillPopScope(
       onWillPop: () async {
         _prev();
@@ -248,44 +256,50 @@ class _RegisterAdminState extends State<RegisterAdmin> {
                         padding: EdgeInsets.all(20.0),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                           FormCaption(no: 1, icon: MdiIcons.accountEdit, teks: "Identitas Anda", warna: widget.warna,),
-                          CardInput(icon: MdiIcons.accountTie, placeholder: "Nama lengkap", caps: TextCapitalization.words, controller: _namaLengkapController, focusNode: _namaLengkapFocusNode),
+                          CardInput(isRequired: true, icon: MdiIcons.accountTie, placeholder: "Nama lengkap", caps: TextCapitalization.words, controller: _namaLengkapController, focusNode: _namaLengkapFocusNode),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text("Jenis kelamin:", style: TextStyle(fontSize: 14.0, color: Colors.grey),),
                               SizedBox(height: 8.0,),
-                              ToggleButtons(
-                                borderRadius: BorderRadius.circular(20.0),
-                                children: <Widget>[
-                                  Row(children: <Widget>[
-                                    SizedBox(width: 10.0),
-                                    Icon(MdiIcons.genderMale),
-                                    SizedBox(width: 5.0),
-                                    Text(_jenisKelaminLbl[0]),
-                                    SizedBox(width: 10.0),
-                                  ],),
-                                  Row(children: <Widget>[
-                                    SizedBox(width: 10.0),
-                                    Icon(MdiIcons.genderFemale),
-                                    SizedBox(width: 5.0),
-                                    Text(_jenisKelaminLbl[1]),
-                                    SizedBox(width: 10.0),
-                                  ],),
-                                ],
-                                onPressed: (int index) {
-                                  setState(() {
-                                    _jenisKelamin = _jenisKelaminVal[index];
-                                  });
-                                },
-                                isSelected: <bool>[
-                                  _jenisKelamin == _jenisKelaminVal[0],
-                                  _jenisKelamin == _jenisKelaminVal[1],
-                                ],
+                              SizedBox(
+                                height: 45.0,
+                                child: ToggleButtons(
+                                  color: ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.black54 : Colors.white54,
+                                  selectedColor: ThemeProvider.themeOf(context).id == THEME_LIGHT ? widget.warna : Colors.white,
+                                  fillColor: widget.warna.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10.0),
+                                  children: <Widget>[
+                                    Row(children: <Widget>[
+                                      SizedBox(width: 10.0),
+                                      Icon(MdiIcons.genderMale),
+                                      SizedBox(width: 5.0),
+                                      Text(_jenisKelaminLbl[0]),
+                                      SizedBox(width: 10.0),
+                                    ],),
+                                    Row(children: <Widget>[
+                                      SizedBox(width: 10.0),
+                                      Icon(MdiIcons.genderFemale),
+                                      SizedBox(width: 5.0),
+                                      Text(_jenisKelaminLbl[1]),
+                                      SizedBox(width: 10.0),
+                                    ],),
+                                  ],
+                                  onPressed: (int index) {
+                                    setState(() {
+                                      _jenisKelamin = _jenisKelaminVal[index];
+                                    });
+                                  },
+                                  isSelected: <bool>[
+                                    _jenisKelamin == _jenisKelaminVal[0],
+                                    _jenisKelamin == _jenisKelaminVal[1],
+                                  ],
+                                ),
                               ),
                             ],
                           ),
                           SizedBox(height: 8.0,),
-                          CardInput(icon: MdiIcons.calendar, placeholder: "Tanggal lahir", jenis: CardInputType.DATE_OF_BIRTH, controller: _tanggalLahirController, focusNode: _tanggalLahirFocusNode, initialValue: _tanggalLahir, onChanged: (val) {
+                          CardInput(isRequired: true, icon: MdiIcons.calendar, placeholder: "Tanggal lahir", jenis: CardInputType.DATE_OF_BIRTH, controller: _tanggalLahirController, focusNode: _tanggalLahirFocusNode, initialValue: _tanggalLahir, onChanged: (val) {
                             try {
                               DateTime value = val;
                               setState(() {
@@ -296,7 +310,7 @@ class _RegisterAdminState extends State<RegisterAdmin> {
                             } catch (e) {
                             }
                           },),
-                          CardInput(icon: MdiIcons.cellphoneAndroid, placeholder: "Nomor ponsel", jenis: CardInputType.PHONE, controller: _nomorPonselController, focusNode: _nomorPonselFocusNode),
+                          CardInput(isRequired: true, icon: MdiIcons.cellphoneAndroid, placeholder: "Nomor ponsel", jenis: CardInputType.PHONE, controller: _nomorPonselController, focusNode: _nomorPonselFocusNode),
                           BottomNav(tahap: 1, prev: _prev, next: _next, warna: widget.warna),
                         ],),
                       ),
@@ -312,8 +326,8 @@ class _RegisterAdminState extends State<RegisterAdmin> {
                         padding: EdgeInsets.all(20.0),
                         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                           FormCaption(no: 2, icon: MdiIcons.officeBuilding, teks: "Informasi Usaha", warna: widget.warna,),
-                          CardInput(icon: MdiIcons.officeBuilding, placeholder: "Nama usaha", caps: TextCapitalization.words, controller: _namaUsahaController, focusNode: _namaUsahaFocusNode),
-                          CardInput(icon: MdiIcons.briefcaseSearch, placeholder: "Kategori usaha", controller: _kategoriUsahaController, focusNode: _kategoriUsahaFocusNode, klik: () {
+                          CardInput(isRequired: true, icon: MdiIcons.officeBuilding, placeholder: "Nama usaha", caps: TextCapitalization.words, controller: _namaUsahaController, focusNode: _namaUsahaFocusNode),
+                          CardInput(isRequired: true, icon: MdiIcons.briefcaseSearch, placeholder: "Kategori usaha", controller: _kategoriUsahaController, focusNode: _kategoriUsahaFocusNode, klik: () {
                             h.showAlert(
                               contentPadding: EdgeInsets.zero,
                               showButton: false,
@@ -342,9 +356,9 @@ class _RegisterAdminState extends State<RegisterAdmin> {
                           onChanged: () {},
                           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                             FormCaption(no: 3, icon: MdiIcons.accountTie, teks: "Data Login", warna: widget.warna,),
-                            CardInput(icon: MdiIcons.email, placeholder: "Alamat email", tipe: TextInputType.emailAddress, controller: _emailController, focusNode: _emailFocusNode),
-                            CardInput(icon: MdiIcons.lock, placeholder: "Buat PIN", info: "6 Angka", jenis: CardInputType.PIN, controller: _sandiController, focusNode: _sandiFocusNode),
-                            CardInput(icon: MdiIcons.lock, placeholder: "Konfirmasi PIN", jenis: CardInputType.PIN, controller: _konfirmSandiController, focusNode: _konfirmSandiFocusNode),
+                            CardInput(isRequired: true, icon: MdiIcons.email, placeholder: "Alamat email", tipe: TextInputType.emailAddress, controller: _emailController, focusNode: _emailFocusNode),
+                            CardInput(isRequired: true, icon: MdiIcons.lock, placeholder: "Buat PIN", info: "6 Angka", jenis: CardInputType.PIN, controller: _sandiController, focusNode: _sandiFocusNode),
+                            CardInput(isRequired: true, icon: MdiIcons.lock, placeholder: "Konfirmasi PIN", jenis: CardInputType.PIN, controller: _konfirmSandiController, focusNode: _konfirmSandiFocusNode),
                             BottomNav(tahap: 3, prev: _prev, next: _next, warna: widget.warna),
                           ],),
                         ),
@@ -367,14 +381,6 @@ class _RegisterAdminState extends State<RegisterAdmin> {
               intervalHighlightColor: Colors.transparent,
               radius: 2.0,
             ),),
-            /* Positioned(top: 0, right: 0, child: LinearPercentIndicator(
-              width: MediaQuery.of(context).size.width - 200.0,
-              lineHeight: 4.0,
-              animation: false,
-              percent: (_pageValue + 1.0) / 3.0,
-              linearStrokeCap: LinearStrokeCap.roundAll,
-              progressColor: Theme.of(context).primaryColor,
-            ),), */
           ],
         ),
       ),

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:bezier_chart/bezier_chart.dart';
 import 'package:expandable/expandable.dart';
@@ -7,6 +9,7 @@ import 'package:showcaseview/showcaseview.dart';
 import 'models/company.dart';
 import 'models/person.dart';
 import 'utils/constants.dart';
+import 'utils/utils.dart';
 
 class Dashboard extends StatelessWidget {
   Dashboard({Key key, this.me}) : super(key: key);
@@ -241,7 +244,7 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                 ],),),),
               ],),
               CardItem(tag: "promo", warna: Colors.blue, child: Row(children: <Widget>[
-                CircularPercentIndicator(
+                /* CircularPercentIndicator(
                   radius: 120.0,
                   lineWidth: 13.0,
                   animation: true,
@@ -257,6 +260,23 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                   ),
                   circularStrokeCap: CircularStrokeCap.round,
                   progressColor: Colors.blue[400],
+                ), */
+                CircularPercentIndicator(
+                  radius: 75.0,
+                  lineWidth: 9.0,
+                  animation: true,
+                  animationDuration: 1000,
+                  percent: 0.7,
+                  center: Text(
+                    "70.0%",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0),
+                  ),
+                  footer: Text(
+                    "Jumlah Klaim",
+                    style: TextStyle(fontSize: 14.0),
+                  ),
+                  circularStrokeCap: CircularStrokeCap.round,
+                  progressColor: Colors.blue[400],
                 ),
                 SizedBox(width: 20.0,),
                 Expanded(
@@ -264,27 +284,27 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text("Eaten", style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 16.0, color: Colors.grey),),
+                        //Text("Eaten", style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 16.0, color: Colors.grey),),
                         Row(crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[
                           Icon(MdiIcons.ticketAccount, color: Colors.pink, size: 20.0,),
                           SizedBox(width: 8.0,),
-                          Text("150", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),),
+                          Text("150", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),),
                           SizedBox(width: 5.0,),
-                          Text("Voucher", style: TextStyle(color: Colors.grey),),
+                          Text("Voucher", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
                         ],),
                       ],
                     ),
-                    SizedBox(height: 12.0,),
+                    SizedBox(height: 5.0,),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text("Burned", style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 16.0, color: Colors.grey),),
+                        //Text("Burned", style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 16.0, color: Colors.grey),),
                         Row(crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[
                           Icon(MdiIcons.tagMultiple, color: Colors.blueAccent, size: 20.0,),
                           SizedBox(width: 8.0,),
-                          Text("120", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20.0),),
+                          Text("120", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),),
                           SizedBox(width: 5.0,),
-                          Text("Promo", style: TextStyle(color: Colors.grey),),
+                          Text("Promo", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
                         ],),
                       ],
                     ),
@@ -351,6 +371,8 @@ class _CardSaleState extends State<CardSale> {
   List<String> _listJangkaWaktu = ['Bulan ini','Minggu ini','Hari ini'];
   String _jangkaWaktu = 'Bulan ini';
 
+  double _nominal = 265000.0;
+
   Widget grafikPenjualan(BuildContext context) {
     final fromDate = DateTime(2019, 05, 22);
     final toDate = DateTime.now();
@@ -413,7 +435,7 @@ class _CardSaleState extends State<CardSale> {
                 child: Row(children: <Widget>[
                   Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                     Text("Total Penjualan", style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
-                    Text("265K", style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),),
+                    Text(h.singkatNominal(_nominal), style: TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold),),
                   ],),
                   SizedBox(width: 15.0,),
                   Expanded(child: DropdownButton(
@@ -447,7 +469,7 @@ class _CardSaleState extends State<CardSale> {
               ),
               Expandable(
                 collapsed: Container(),
-                expanded: Container(height: MediaQuery.of(context).size.height / 2, color: Colors.pink, child: grafikPenjualan(context),),
+                expanded: Container(height: min(300.0, MediaQuery.of(context).size.height / 2), color: Colors.pink, child: grafikPenjualan(context),),
               ),
               Divider(height: 1,),
               Builder(

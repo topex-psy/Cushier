@@ -50,7 +50,6 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
 
   _IntroState() {
     slideUpdateStream = StreamController<SlideUpdate>();
-
     slideUpdateStream.stream.listen((SlideUpdate event) {
       setState(() {
         if (event.updateType == UpdateType.dragging) {
@@ -81,7 +80,6 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
               slideUpdateStream: slideUpdateStream,
               vsync: this,
             );
-
             nextPageIndex = activeIndex;
           }
 
@@ -91,10 +89,8 @@ class _IntroState extends State<Intro> with TickerProviderStateMixin {
           slidePercent = event.slidePercent;
         } else if (event.updateType == UpdateType.doneAnimating) {
           activeIndex = nextPageIndex;
-
           slideDirection = SlideDirection.none;
           slidePercent = 0.0;
-
           animatedPageDragger.dispose();
         }
       });

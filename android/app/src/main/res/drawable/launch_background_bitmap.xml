@@ -4,10 +4,10 @@
     <item android:drawable="@android:color/white" />
 
     <!-- You can insert your own image assets here -->
-    <item
-        android:width="180dp"
-        android:height="46dp"
-        android:drawable="@drawable/logo"
-        android:gravity="center" />
+    <item>
+        <bitmap
+            android:src="@drawable/logo_small"
+            android:gravity="center" />
+    </item>
 
 </layer-list>

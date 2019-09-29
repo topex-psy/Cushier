@@ -1,3 +1,4 @@
+import 'package:Cushier/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -43,7 +44,27 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
       SharedPreferences.getInstance().then((prefs) {
         _isFirstRun = prefs.getBool('isFirstRun') ?? true;
         prefs.setBool('isFirstRun', false);
-        if (_isFirstRun) _lanjut(); else {
+        if (_isFirstRun) _lanjut(); else if (DEBUG_PERSON && isDebugMode) {
+          _me = PersonApi(
+            uid: "123",
+            idLevel: 1,
+            idUsaha: 1,
+            idOutlet: null,
+            level: "Pemilik Usaha",
+            namaLengkap: "Taufik Nur Rahmanda",
+            tanggalLahir: "1993-07-26",
+            umur: 25,
+            gender: "L",
+            jenisKelamin: "Laki-Laki",
+            availabilityColor: "SUCCESS",
+            availabilityLabel: "Available",
+            email: "admintest@cushier.io",
+            noHP: "085954479380",
+            foto: null,
+            terakhir: "2019-09-28 00:00:00",
+          );
+          _lanjut();
+        } else {
           _firebaseAuth.currentUser().then((user) {
             print("DATA SAYA CURRENT USEEEEEEEEEEEEEEEEEEEEEER: $user");
             if (user == null) _lanjut(); else getPerson(user.uid).then((me) {
@@ -51,6 +72,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
               _me = me;
             }).catchError((e) {
               print("DATA SAYA ERROOOOOOOOOOOOR: $e");
+              _firebaseAuth.signOut();
             }).whenComplete(() {
               print("DATA SAYA DONEEEEEEEEEEEEE!");
               _lanjut();

@@ -9,6 +9,7 @@ import 'package:expandable/expandable.dart';
 import 'package:launch_review/launch_review.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:popup_menu/popup_menu.dart';
+import 'package:preload_page_view/preload_page_view.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:theme_provider/theme_provider.dart';
@@ -367,11 +368,20 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
     menu.show(widgetKey: btnNotifKey);
   }
 
+  double _currentPage = listPersonLevel.length.toDouble();
+
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
     h = MyHelper(context);
     a = MyAppHelper(context);
+
+    PreloadPageController pageController = PreloadPageController(initialPage: listPersonLevel.length, viewportFraction: 0.7);
+    pageController.addListener(() {
+      setState(() {
+        _currentPage = pageController.page;
+      });
+    });
 
     return WillPopScope(
       onWillPop: () async {
@@ -450,15 +460,17 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               child: SingleChildScrollView(
                 child: appState.currentPerson == null ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                   SizedBox(height: 25.0,),
-                  Column(
-                    children: listPersonLevel.map((int i, PersonLevelInfo t) {
-                      return MapEntry(i, CardMenu(
-                        keyTour: t.level == PersonLevel.USER_ADMIN ? keyTour1 : (t.level == PersonLevel.USER_KASIR ? keyTour2 : GlobalKey()),
-                        pos: i,
-                        info: t,
-                      ));
-                    }).values.toList(),
-                  ),
+                  OrientationBuilder(builder: (context, orientation) {
+                    return SizedBox(width: double.infinity, height: orientation == Orientation.portrait ? 400 : 200, child: PreloadPageView.builder(
+                      preloadPagesCount: listPersonLevel.length,
+                      itemCount: listPersonLevel.length,
+                      controller: pageController,
+                      itemBuilder: (context, index) => CardScrollWidget(pos: index, currentPage: _currentPage),
+                      onPageChanged: (page) {
+                        appState.currentMenu = page;
+                      },
+                    ),);
+                  },),
                   SizedBox(height: 35.0,),
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 20.0),
@@ -484,6 +496,103 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               color: Colors.white,
             ),),
           ],),
+        ),
+      ),
+    );
+  }
+}
+
+class CardScrollWidget extends StatelessWidget {
+  CardScrollWidget({@required this.pos, this.currentPage});
+  final int pos;
+  final double currentPage;
+
+  final double padding = 20.0;
+  final double verticalInset = 20.0;
+
+  _login() {}
+  _register() {}
+
+  @override
+  Widget build(BuildContext context) {
+    //final appState = Provider.of<AppState>(context);
+    PersonLevelInfo info = listPersonLevel[listPersonLevel.length - pos];
+    double delta = pos - currentPage;
+    Color flatColor = ThemeProvider.themeOf(context).id == THEME_LIGHT ? info.warna : Colors.white;
+    return Padding(
+      padding: EdgeInsets.only(top: 20.0, bottom: 20.0),
+      child: Transform.translate(
+        offset: Offset(30.0 + (delta > 0 ? (delta * 30.0) : (delta * -190.0 - (delta < -1.0 ? (delta + 1.0) * 180.0: 0.0))), 0.0),
+        child: Transform.scale(
+          scale: 1.0 + min(delta / 5.0, 0.0),
+          child: GestureDetector(
+            onTap: () {
+              print("TAP CARD = ${info.judul}");
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    offset: Offset(-3.0, 6.0),
+                    blurRadius: 10.0,
+                  ),
+                ],
+              ),
+              child: Container(
+                padding: EdgeInsets.all(20.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16.0),
+                  gradient: LinearGradient(
+                    begin: FractionalOffset(0.0, 0.0),
+                    end: FractionalOffset(0.75, 1.0),
+                    colors: [
+                      HSLColor.fromColor(info.warna).withLightness(0.75).toColor(),
+                      HSLColor.fromColor(info.warna).withLightness(0.95).toColor(),
+                    ],
+                  ),
+                ),
+                child: Stack(children: <Widget>[
+                    Positioned.fill(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                      Expanded(child: FittedBox(alignment: Alignment.center, fit: BoxFit.contain, child: Icon(info.icon, color: info.warna,),),),
+                      SizedBox(height: 5.0,),
+                      Text(info.judul, style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 20.0),),
+                      SizedBox(height: 5.0,),
+                      //Text("$delta", style: TextStyle(fontSize: 14.0),),
+                      Text(info.deskripsi, style: TextStyle(fontSize: 14.0),),
+                      SizedBox(height: 15.0,),
+                      Row(mainAxisSize: MainAxisSize.min, children: <Widget>[
+                        Expanded(
+                          //child: Container(),
+                          child: FlatButton(
+                            padding: EdgeInsets.symmetric(horizontal: 5.0),
+                            color: Colors.white30,
+                            child: Row(
+                              children: <Widget>[
+                                Icon(MdiIcons.login, size: 15.0, color: flatColor,),
+                                SizedBox(width: 5.0,),
+                                Text("Login", style: TextStyle(color: flatColor, fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                            onPressed: _login,
+                          ),
+                        ),
+                        SizedBox(width: 140, height: 44.0, child: UiButton(color: info.warna ?? Colors.lightBlue, teks: info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
+                      ],),
+                    ],),),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Transform.translate(
+                        offset: Offset(10.0, 0.0),
+                        child: Icon(MdiIcons.chevronRight, color: Colors.black12, size: 30.0,),
+                      ),
+                    ),
+                  ],),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -645,7 +754,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    Color flatColor = ThemeProvider.themeOf(context).id == THEME_LIGHT ? widget.info.warna : Colors.white;
+    Color flatColor = ThemeProvider.themeOf(context).id == THEME_LIGHT ? (widget.info.warna ?? Colors.lightBlue) : Colors.white;
     return Consumer<AppState>(
       builder: (context, appState, _) {
         return AnimatedBuilder(
@@ -671,21 +780,21 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
                             begin: FractionalOffset(0.0, 0.0), //Alignment.topLeft,
                             end: FractionalOffset(0.75, 1.0), //Alignment.bottomRight,
                             colors: [
-                              appState.currentMenu == widget.pos ? widget.info.warna.withOpacity(0.2) : widget.info.warna.withOpacity(0.1),
-                              appState.currentMenu == widget.pos ? widget.info.warna.withOpacity(0.1) : widget.info.warna.withOpacity(0.05),
+                              appState.currentMenu == widget.pos ? widget.info.warna.withOpacity(0.2) : Colors.transparent,
+                              appState.currentMenu == widget.pos ? widget.info.warna.withOpacity(0.1) : Colors.transparent,
                             ],
                           ),
                         ),
-                        //padding: EdgeInsets.all(CARD_PADDING),
+                        padding: EdgeInsets.all(CARD_PADDING),
                         //color: appState.currentMenu == widget.pos ? widget.info.warna.withOpacity(0.1) : Colors.transparent,
                         child: AnimatedBuilder(
                           animation: _animationController,
                           builder: (BuildContext context, Widget child) {
-                            Widget expandedWidget = Padding(padding: EdgeInsets.only(left: CARD_PADDING, right: CARD_PADDING, bottom: CARD_PADDING), child: Column(
+                            Widget expandedWidget = Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: <Widget>[
-                                //SizedBox(height: 8.0,),
+                                SizedBox(height: 8.0,),
                                 SizedBox(
                                   height: _lastPersons.isEmpty ? 0.0 : (_lastPersons.length * 70.0 + 8.0),
                                   child: ListView.builder(
@@ -714,47 +823,42 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
                                       ),
                                       onPressed: _login,
                                     ),
-                                    SizedBox(height: 44.0, child: UiButton(color: widget.info.warna, teks: widget.info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: widget.info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
+                                    SizedBox(height: 44.0, child: UiButton(color: widget.info.warna ?? Colors.lightBlue, teks: widget.info.level == PersonLevel.USER_ADMIN ? "Daftar Baru" : "Scan QR", ukuranTeks: 15.0, posisiTeks: MainAxisAlignment.center, icon: widget.info.level == PersonLevel.USER_ADMIN ? MdiIcons.accountPlus : MdiIcons.qrcodeScan, aksi: _register,),),
                                   ],),
                                 ),
                               ],
-                            ));
+                            );
                             return ExpandablePanel(
                               controller: _expandableController,
-                              header: InkWell(
-                                splashColor: widget.info.warna.withOpacity(0.1),
-                                highlightColor: widget.info.warna.withOpacity(0.1),
+                              header: GestureDetector(
                                 onTap: _expandableController.toggle,
-                                child: Padding(
-                                  padding: EdgeInsets.all(CARD_PADDING),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
-                                      SizedBox(width: 12.0,),
-                                      Expanded(
-                                        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                                          SizedBox(height: 2.0,),
-                                          Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
-                                          SizedBox(height: 6.0,),
-                                          Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
-                                          SizedBox(height: 6.0,),
-                                        ],),
-                                      ),
-                                      SizedBox(width: appState.currentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
-                                      Transform.rotate(
-                                        angle: appState.currentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
-                                        child: Icon(Icons.chevron_right, color: Colors.grey, size: 25.0,),
-                                      ),
-                                    ],
-                                  ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(widget.info.icon, color: widget.info.warna ?? Colors.grey, size: appState.currentMenu == widget.pos ? (50.0 + _animation.value * 10.0) : 50.0,),
+                                    SizedBox(width: 12.0,),
+                                    Expanded(
+                                      child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                                        SizedBox(height: 2.0,),
+                                        Text(widget.info.judul, style: TextStyle(height: 1.2, fontSize: 16.0, fontFamily: 'FlamanteRoma'),),
+                                        SizedBox(height: 6.0,),
+                                        Text(widget.info.deskripsi, style: TextStyle(height: 1.2, fontSize: 13.0, color: Colors.blueGrey),),
+                                        SizedBox(height: 6.0,),
+                                      ],),
+                                    ),
+                                    /* SizedBox(width: appState.getCurrentMenu == widget.pos ? (20.0 - _animation.value * 10.0) : 20.0,),
+                                    Transform.rotate(
+                                      angle: appState.getCurrentMenu == widget.pos ? (-0.5 * _animation.value * pi) : 0.0,
+                                      child: Icon(Icons.chevron_right, color: Colors.grey, size: 30.0,),
+                                    ), */
+                                  ],
                                 ),
                               ),
                               collapsed: Container(),
                               expanded: expandedWidget,
                               tapHeaderToExpand: false,
-                              hasIcon: false,
+                              hasIcon: true,
                             );
                           }
                         ),
@@ -776,26 +880,6 @@ class LoginForm extends StatefulWidget {
   final PersonApi p;
 
   show({doOnDismiss}) => h.showAlert(
-    header: Container(
-      padding: EdgeInsets.all(20.0),
-      color: listPersonLevel[p.idLevel]?.warna?.withOpacity(0.2),
-      child: Row(children: <Widget>[
-        CircleAvatar(backgroundImage: p.uid == null ? AssetImage("images/anon.png") : NetworkImage(p.foto),),
-        SizedBox(width: 15.0,),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: p.uid == null ? <Widget>[
-          Text(listPersonLevel[p.idLevel].judul, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),),
-          SizedBox(height: 5.0,),
-          Text("Login", style: TextStyle(fontSize: 14.0),),
-        ] : <Widget>[
-          Text(p.namaLengkap, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),),
-          SizedBox(height: 4.0,),
-          Text(p.email, style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
-          SizedBox(height: 4.0,),
-          Text(p.level, style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
-        ],)),
-        SizedBox(width: 10.0,),
-      ],),
-    ),
     warnaAksen: listPersonLevel[p.idLevel]?.warna,
     doOnDismiss: doOnDismiss,
     showButton: false,
@@ -921,7 +1005,21 @@ class _LoginFormState extends State<LoginForm> {
     final appState = Provider.of<AppState>(context);
     return _isLoading ? Center(child: LoadingCircle(noCard: true)) : Column(
       children: <Widget>[
-        //SizedBox(height: 20.0,),
+        Row(children: <Widget>[
+          CircleAvatar(backgroundImage: _isAnonymous ? AssetImage("images/anon.png") : NetworkImage(widget.p.foto),),
+          SizedBox(width: 15.0,),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: _isAnonymous ? <Widget>[
+            Text("Login ${listPersonLevel[widget.p.idLevel].judul}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),),
+          ] : <Widget>[
+            Text(widget.p.namaLengkap, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.0),),
+            SizedBox(height: 4.0,),
+            Text(widget.p.email, style: TextStyle(fontSize: 12.0, color: Colors.blueGrey),),
+            SizedBox(height: 4.0,),
+            Text(widget.p.level, style: TextStyle(fontSize: 14.0, color: Colors.blueGrey),),
+          ],)),
+          SizedBox(width: 10.0,),
+        ],),
+        SizedBox(height: 20.0,),
         _isAnonymous ? CardInput(icon: MdiIcons.email, placeholder: "Alamat email", controller: _emailController, focusNode: _emailFocusNode, aksi: (String val) => _login()) : SizedBox(),
         CardInput(icon: MdiIcons.lock, placeholder: "Masukkan PIN", jenis: CardInputType.PIN, controller: _sandiController, focusNode: _sandiFocusNode, aksi: (String val) => _login()),
         SizedBox(height: 5.0,),

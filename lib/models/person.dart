@@ -10,7 +10,7 @@ final Map<int, PersonLevelInfo> listPersonLevel = {
   1: PersonLevelInfo(
     level: PersonLevel.USER_ADMIN,
     judul: "Pemilik Usaha",
-    deskripsi: "Kelola usaha, outlet, produk, promo, voucher, karyawan, konsumen, laporan, aktivitas",
+    deskripsi: "Kelola usaha, outlet, produk, promo, voucher, karyawan, konsumen, dan laporan",
     icon: MdiIcons.accountTie,
     warna: Colors.purple,
   ),

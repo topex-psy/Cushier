@@ -16,6 +16,7 @@ Cushier adalah aplikasi pengelolaan usaha serta Point of Sale (POS) berbasis clo
 ###### Admin:
 - [ ] peta outlet usaha seluruh indo
 - [ ] statistik jumlah usaha per wilayah
+- [ ] admin bisa kembali ke halaman depan (pemilihan tipe akun)
 ###### Pengusaha:
 - [ ] cetak (employeecard)
 - [ ] \(optional) foto pegawai pake face detector api

@@ -41,10 +41,39 @@ class MyAppHelper {
       print("BARCODE GAGAL = Unknown error: $e");
     }
     h.playSound(barcode.isEmpty
-      ? "scan_error.mp3"
+      ? "scan_error.wav"
       : "scan_beep.mp3"
     );
     return barcode;
+  }
+
+  scanQRLogin({void Function() onLoading, void Function() onDoneLoading, void Function(PersonApi) onSuccess}) {
+    scanQR().then((uid) {
+      if (uid.isNotEmpty) {
+        print("BARCODE BERHASIL = $uid");
+        onLoading();
+        getPerson(uid).then((p) {
+          if (p == null) {
+            print("DATA SAYA NUUUUUUUUUUUUULL!");
+            onDoneLoading();
+            h.failAlertLogin();
+          } else if (p.uid.isEmpty) {
+            print("DATA SAYA INVALIIIIIIIIIID!");
+            onDoneLoading();
+            h.failAlertLogin("Kode QR tidak benar atau akun tidak terdaftar!");
+          } else {
+            print("DATA SAYA BERHASIL DIMUAT!");
+            onSuccess(p);
+          }
+        }).catchError((e) {
+          print("DATA SAYA ERROOOOOOOOOOOOR 1: $e");
+          onDoneLoading();
+          h.failAlertLogin();
+        }).whenComplete(() {
+          print("DATA SAYA DONEEEEEEEEEEEEE 1!");
+        });
+      }
+    });
   }
 
   Color uiCardSecondaryColor() {
@@ -64,10 +93,14 @@ class MyAppHelper {
         email: email,
         password: password,
       ).catchError((e) {
-        print("FIREBASE LOGIN ERROR: $e");
+        print("FIREBASE LOGIN ERROR 1: $e");
       });
-    } catch(e) {
-      print(e);
+    } on PlatformException catch (error)  { 
+      List<String> errors = error.toString().split(',');
+      print("FIREBASE LOGIN ERROR 2: " + errors[1]); 
+      return null;
+    } catch (e) {
+      print("FIREBASE LOGIN ERROR 3: $e");
       return null;
     }
   }
@@ -112,7 +145,7 @@ class MyHelper {
   }
 
   //fungsi untuk menampilkan popup dialog berisi pesan atau konten apapun
-  showAlert({String judul, Widget isi, Widget listView, EdgeInsetsGeometry contentPadding, bool barrierDismissible = true, bool showButton = true, FlatButton customButton, Color warnaAksen, void Function() doOnDismiss}) async {
+  showAlert({String judul, Widget header, Widget isi, Widget listView, EdgeInsetsGeometry contentPadding, bool barrierDismissible = true, bool showButton = true, FlatButton customButton, Color warnaAksen, void Function() doOnDismiss}) async {
     playSound("butt_press.wav");
     await showGeneralDialog(
       barrierColor: Colors.black.withOpacity(0.5),
@@ -120,7 +153,6 @@ class MyHelper {
       transitionBuilder: (context, a1, a2, widget) {
         final curvedValue = Curves.easeInOutBack.transform(a1.value) - 1.0;
         return Theme(
-          //data: Theme.of(context).copyWith(primaryColor: warnaAksen ?? Theme.of(context).primaryColor),
           data: ThemeData(primarySwatch: warnaAksen ?? Theme.of(context).primaryColor, fontFamily: "Lato",),
           child: Transform(
             //transform: Matrix4.translationValues(0.0, curvedValue * 200, 0.0),
@@ -129,9 +161,11 @@ class MyHelper {
               opacity: a1.value,
               child: AlertDialog(
                 shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                title: judul != null ? Text(judul, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),) : null,
+                title: header ?? (judul != null ? Text(judul, style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 18.0),) : null),
+                titlePadding: header != null ? EdgeInsets.zero : EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0),
                 content: listView ?? SingleChildScrollView(child: isi,),
-                contentPadding: contentPadding ?? EdgeInsets.all(24.0),
+                //contentPadding: contentPadding ?? EdgeInsets.all(24.0),
+                contentPadding: EdgeInsets.only(left: 24.0, top: (judul != null || header != null) ? 12.0 : 24.0, right: 24.0, bottom: 24.0),
                 actions: showButton ? <Widget>[
                   customButton ?? FlatButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -167,9 +201,9 @@ class MyHelper {
               opacity: a1.value,
               child: AlertDialog(
                 shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(30.0)),
-                title: judul != null ? Text(judul, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0),) : null,
+                title: judul != null ? Text(judul, style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 18.0),) : null,
                 content: SingleChildScrollView(child: Text(pesan, style: TextStyle(fontSize: 16.0, height: 1.4),),),
-                contentPadding: EdgeInsets.only(left: 24.0, top: 24.0, right: 24.0, bottom: 12.0),
+                contentPadding: EdgeInsets.only(left: 24.0, top: judul != null ? 12.0 : 24.0, right: 24.0, bottom: 12.0),
                 actions: <Widget>[
                   Padding(
                     padding: EdgeInsets.only(bottom: 8.0),
@@ -219,7 +253,7 @@ class MyHelper {
         FlatButton(
           child: Text("OK", style: TextStyle(color: Theme.of(context).accentColor, fontWeight: FontWeight.bold),),
           //onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: Navigator.of(context).pop,
         ),
       ],),
     ],),
@@ -249,8 +283,8 @@ class MyHelper {
             message: Text(pesan ?? "Terjadi kendala saat memuat data. Harap periksa koneksi internet Anda!"),
             showProgressIndicator: false,
             primaryAction: FlatButton(
-              onPressed: () => controller.dismiss(),
               child: Text('TUTUP', style: TextStyle(color: Colors.amber)),
+              onPressed: controller.dismiss,
             ),
           ),
         );
@@ -265,7 +299,7 @@ class MyHelper {
 
   //fungsi untuk menampilkan toast
   //ref: https://github.com/sososdk/flash/blob/master/example/lib/main.dart
-  showToast({
+  showToast(String pesan, {
     FlashPosition position = FlashPosition.bottom,
     Alignment alignment,
   }) {
@@ -281,14 +315,12 @@ class MyHelper {
           position: position,
           alignment: alignment,
           enableDrag: false,
-          onTap: () => controller.dismiss(),
+          onTap: controller.dismiss,
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: EdgeInsets.all(12.0),
             child: DefaultTextStyle(
               style: TextStyle(color: Colors.white),
-              child: Text(
-                'You can put any message of any length here.',
-              ),
+              child: Text(pesan),
             ),
           ),
         );
@@ -304,4 +336,15 @@ class MyHelper {
       print("OPENING URL $url...");
     },
   );
+
+  //fungsi yang menyingkat nominal ke "rb" atau "jt"
+  String singkatNominal(double nominal, {int decimal = 0}) {
+    if (nominal >= 1000000.0) {
+      return (nominal / 1000000.0).toStringAsFixed(decimal) + "jt";
+    } else if (nominal >= 1000.0) {
+      return (nominal / 1000.0).toStringAsFixed(decimal) + "rb";
+    } else {
+      return nominal.toStringAsFixed(decimal);
+    }
+  }
 }

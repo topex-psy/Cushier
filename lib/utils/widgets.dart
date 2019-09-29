@@ -26,20 +26,12 @@ class LoadingCircle extends StatelessWidget {
       ],),
     );
 
-    return noCard ? _isi : AbsorbPointer(
-      absorbing: absorb,
-      child: Center(
-        child: Opacity(
-          opacity: 0.8,
-          child: Card(
-            shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(15)),
-            color: Colors.white,
-            elevation: 20.0,
-            child: _isi,
-          ),
-        ),
-      ),
-    );
+    return noCard ? _isi : Center(child: Card(
+      shape: ContinuousRectangleBorder(borderRadius: BorderRadius.circular(15)),
+      color: Colors.white,
+      elevation: 20.0,
+      child: _isi,
+    ),);
   }
 }
 
@@ -52,14 +44,13 @@ enum CardInputType {
 }
 
 class CardInput extends StatefulWidget {
-  CardInput({Key key, this.icon, this.placeholder, this.showLabel = true, this.info, this.prefiks, this.height = 45.0, this.radius = 30.0, this.borderColor, this.borderWidth = 1.0, this.jenis = CardInputType.TEXT, this.tipe, this.caps, this.controller, this.focusNode, this.initialValue = '', this.aksi, this.klik, this.onChanged, this.marginBottom = 8.0}) : super(key: key);
+  CardInput({Key key, this.icon, this.placeholder, this.showLabel = true, this.info, this.prefiks, this.height = 45.0, this.borderColor, this.borderWidth = 1.0, this.jenis = CardInputType.TEXT, this.tipe, this.caps, this.controller, this.focusNode, this.initialValue = '', this.isRequired = false, this.aksi, this.klik, this.onChanged, this.marginBottom = 8.0}) : super(key: key);
   final IconData icon;
   final String placeholder;
   final String info;
   final String prefiks;
   final bool showLabel;
   final double height;
-  final double radius;
   final Color borderColor;
   final double borderWidth;
   final CardInputType jenis;
@@ -68,6 +59,7 @@ class CardInput extends StatefulWidget {
   final TextEditingController controller;
   final FocusNode focusNode;
   final String initialValue;
+  final bool isRequired;
   final void Function(String) aksi;
   final void Function() klik;
   final void Function(dynamic) onChanged;
@@ -92,6 +84,14 @@ class _CardInputState extends State<CardInput> {
 
   @override
   Widget build(BuildContext context) {
+    final _validator = (value) {
+      //return value.contains('@') ? 'Do not use the @ char.' : null;
+      if (widget.isRequired && value.isEmpty) {
+        return "Harap isi " + (widget.placeholder ?? "kolom ini");
+      }
+      return null;
+    };
+
     switch (widget.jenis) {
       case CardInputType.TEXT:
         _input = Padding(
@@ -111,10 +111,7 @@ class _CardInputState extends State<CardInput> {
               widget.klik();
             },
             //onSubmitted: widget.aksi,
-            validator: (String value) {
-              //return value.contains('@') ? 'Do not use the @ char.' : null;
-              return null;
-            },
+            validator: _validator,
           ),
         );
         break;
@@ -129,10 +126,7 @@ class _CardInputState extends State<CardInput> {
             controller: widget.controller,
             focusNode: widget.focusNode,
             //onSubmitted: widget.aksi,
-            validator: (String value) {
-              //return value.contains('@') ? 'Do not use the @ char.' : null;
-              return null;
-            },
+            validator: _validator,
           ),
         );
         break;
@@ -156,9 +150,7 @@ class _CardInputState extends State<CardInput> {
               textInputAction: TextInputAction.go,
               controller: widget.controller,
               focusNode: widget.focusNode,
-              validator: (String value) {
-                return null;
-              },
+              validator: _validator,
             ),
           ),
           Align(
@@ -190,9 +182,11 @@ class _CardInputState extends State<CardInput> {
             );
           },
           onChanged: widget.onChanged,
+          validator: _validator,
         );
         break;
     }
+
     return Padding(
       padding: EdgeInsets.only(bottom: 8.0),
       child: Column(
@@ -202,9 +196,9 @@ class _CardInputState extends State<CardInput> {
             ? Padding(padding: EdgeInsets.symmetric(vertical: 8.0), child: Text(widget.placeholder + ((widget.info ?? "").isEmpty ? ":" : " (${widget.info}):"), style: TextStyle(fontSize: 14.0, color: Colors.grey),),)
             : SizedBox(),
           Card(
-            shape: ContinuousRectangleBorder(
+            shape: RoundedRectangleBorder(
               side: BorderSide(color: widget.borderColor ?? Colors.grey[350], width: 1.0,),
-              borderRadius: BorderRadius.circular(30.0),
+              borderRadius: BorderRadius.circular(10.0),
             ),
             elevation: 0.0,
             margin: EdgeInsets.zero,
@@ -324,16 +318,12 @@ class TopGradient extends StatelessWidget {
       height: 20.0,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: FractionalOffset.topCenter,
-          end: FractionalOffset.bottomCenter,
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
           colors: [
             (ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.white : Theme.of(context).primaryColor).withOpacity(1.0),
             (ThemeProvider.themeOf(context).id == THEME_LIGHT ? Colors.white : Theme.of(context).primaryColor).withOpacity(0.0),
           ],
-          stops: [
-            0.0,
-            1.0,
-          ]
         ),
       ),
     ),),);

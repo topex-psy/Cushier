@@ -1,11 +1,9 @@
-import 'package:Cushier/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'models/person.dart';
 import 'utils/constants.dart';
-
-const double _iconSize = 180.0;
+import 'utils/utils.dart';
 
 final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
@@ -45,24 +43,7 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
         _isFirstRun = prefs.getBool('isFirstRun') ?? true;
         prefs.setBool('isFirstRun', false);
         if (_isFirstRun) _lanjut(); else if (DEBUG_PERSON && isDebugMode) {
-          _me = PersonApi(
-            uid: "123",
-            idLevel: 1,
-            idUsaha: 1,
-            idOutlet: null,
-            level: "Pemilik Usaha",
-            namaLengkap: "Taufik Nur Rahmanda",
-            tanggalLahir: "1993-07-26",
-            umur: 25,
-            gender: "L",
-            jenisKelamin: "Laki-Laki",
-            availabilityColor: "SUCCESS",
-            availabilityLabel: "Available",
-            email: "admintest@cushier.io",
-            noHP: "085954479380",
-            foto: null,
-            terakhir: "2019-09-28 00:00:00",
-          );
+          _me = PersonApi.fromJson(DEBUG_PERSON_DATA);
           _lanjut();
         } else {
           _firebaseAuth.currentUser().then((user) {
@@ -106,14 +87,14 @@ class _SplashState extends State<Splash> with SingleTickerProviderStateMixin {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   SizedBox(
-                    width: _iconSize,
-                    height: _iconSize,
+                    width: SPLASH_ICON_SIZE,
+                    height: SPLASH_ICON_SIZE,
                     child: Transform.scale(
                       scale: _animation1.value,
                       child: Hero(tag: "SplashLogo", child: Image.asset(
                         "images/logo.png",
-                        width: _iconSize,
-                        height: _iconSize,
+                        width: SPLASH_ICON_SIZE,
+                        height: SPLASH_ICON_SIZE,
                         fit: BoxFit.contain,
                       ),),
                     ),

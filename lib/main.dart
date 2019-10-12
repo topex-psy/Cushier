@@ -58,12 +58,12 @@ class AppState with ChangeNotifier {
   }
 
   //current scaffold key
-  GlobalKey<ScaffoldState> _currentScaffoldKey;
+  /* GlobalKey<ScaffoldState> _currentScaffoldKey;
   GlobalKey<ScaffoldState> get currentScaffoldKey => _currentScaffoldKey;
   set currentScaffoldKey(GlobalKey<ScaffoldState> key) {
     _currentScaffoldKey = key;
     notifyListeners();
-  }
+  } */
 
   //current menu
   int _currentMenu = -1;
@@ -305,7 +305,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         int lastMenuOpen = prefs.getInt('lastMenuOpen') ?? -1;
         if (lastMenuOpen > -1) appState.currentMenu = lastMenuOpen;
       });
-      appState.currentScaffoldKey = _scaffoldKey;
+      //appState.currentScaffoldKey = _scaffoldKey;
       print("LAUNCH SPLASH SCREEN!");
       _splashScreen();
     });
@@ -797,10 +797,11 @@ class LoginForm extends StatefulWidget {
       ],),
     ),
     warnaAksen: listPersonLevel[p.idLevel]?.warna,
-    doOnDismiss: doOnDismiss,
     showButton: false,
     isi: this,
-  );
+  ).then((res) {
+    doOnDismiss();
+  });
 
   @override
   _LoginFormState createState() => _LoginFormState();

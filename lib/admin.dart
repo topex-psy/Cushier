@@ -185,8 +185,8 @@ class _RegisterAdminState extends State<RegisterAdmin> {
           register(postData.toMap()).then((status) {
             print("DATA REGISTER STATUUUUUUUUUUUS: $status");
             h.closeAlert();
-            var angka = status == null ? 0 : status.status;
-            var pesan = status == null ? "Terjadi kendala saat memproses pendaftaran akun. Coba kembali nanti!" : status.message;
+            int angka = status?.status ?? 0;
+            String pesan = status?.message ?? "Terjadi kendala saat memproses pendaftaran akun. Coba kembali nanti!";
             if (angka == 1) {
               print(status.result);
               Navigator.of(context).pop({'me': PersonApi.fromJson(status.result)});

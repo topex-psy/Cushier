@@ -6,7 +6,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash/flash.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:theme_provider/theme_provider.dart';
+import '../models/company.dart';
 import '../models/person.dart';
+import '../point_of_sale.dart';
 import 'constants.dart';
 import 'widgets.dart';
 
@@ -74,6 +76,11 @@ class MyAppHelper {
         });
       }
     });
+  }
+
+  startPOSSession(OutletApi outlet) async {
+    Map results = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => PointOfSale(outlet: outlet,)));
+    print(results);
   }
 
   Color uiCardSecondaryColor() {
@@ -145,9 +152,9 @@ class MyHelper {
   }
 
   //fungsi untuk menampilkan popup dialog berisi pesan atau konten apapun
-  showAlert({String judul, Widget header, Widget isi, Widget listView, EdgeInsetsGeometry contentPadding, bool barrierDismissible = true, bool showButton = true, FlatButton customButton, Color warnaAksen, void Function() doOnDismiss}) async {
+  Future showAlert({String judul, Widget header, Widget isi, Widget listView, EdgeInsetsGeometry contentPadding, bool barrierDismissible = true, bool showButton = true, FlatButton customButton, Color warnaAksen}) {
     playSound("butt_press.wav");
-    await showGeneralDialog(
+    return showGeneralDialog(
       barrierColor: Colors.black.withOpacity(0.5),
       barrierDismissible: barrierDismissible,
       transitionBuilder: (context, a1, a2, widget) {
@@ -164,8 +171,7 @@ class MyHelper {
                 title: header ?? (judul != null ? Text(judul, style: TextStyle(fontFamily: 'FlamanteRoma', fontSize: 18.0),) : null),
                 titlePadding: header != null ? EdgeInsets.zero : EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0),
                 content: listView ?? SingleChildScrollView(child: isi,),
-                //contentPadding: contentPadding ?? EdgeInsets.all(24.0),
-                contentPadding: EdgeInsets.only(left: 24.0, top: (judul != null || header != null) ? 12.0 : 24.0, right: 24.0, bottom: 24.0),
+                contentPadding: contentPadding ?? EdgeInsets.only(left: 24.0, top: (judul != null || header != null) ? 12.0 : 24.0, right: 24.0, bottom: 24.0),
                 actions: showButton ? <Widget>[
                   customButton ?? FlatButton(
                     onPressed: () => Navigator.of(context).pop(),
@@ -181,9 +187,7 @@ class MyHelper {
       barrierLabel: '',
       context: context,
       pageBuilder: (context, animation1, animation2) => Container()
-    ).then((val) {
-      if (doOnDismiss != null) doOnDismiss();
-    });
+    );
   }
 
   //fungsi untuk menampilkan popup dialog konfirmasi
@@ -258,8 +262,9 @@ class MyHelper {
       ],),
     ],),
     showButton: false,
-    doOnDismiss: doOnDismiss,
-  );
+  ).then((res) {
+    doOnDismiss();
+  });
 
   //fungsi untuk menampilkan popup pesan gagal login
   failAlertInternet([String pesan]) {

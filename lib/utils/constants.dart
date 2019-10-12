@@ -21,8 +21,28 @@ const double CARD_PADDING = 13.0;
 const double CARD_ELEVATION = 12.0;
 const double CARD_RADIUS = 15.0;
 
+const double SPLASH_ICON_SIZE = 180.0;
+
 const bool DEBUG_ONBOARDING = false;
 const bool DEBUG_PERSON = true;
+const DEBUG_PERSON_DATA = {
+  'UID': "o03egapIUAYsLojGSufw2hht2n72",
+  'ID_LEVEL': '1',
+  'ID_USAHA': '1',
+  'ID_OUTLET': null,
+  'LEVEL': "Pemilik Usaha",
+  'NAMA_LENGKAP': "Taufik Nur Rahmanda",
+  'TANGGAL_LAHIR': "1993-07-26",
+  'UMUR': '25',
+  'JENIS_KELAMIN': "L",
+  'JENIS_KELAMIN_LENGKAP': "Laki-Laki",
+  'AVAILABILITY_CLASS': "SUCCESS",
+  'AVAILABILITY_LABEL': "Available",
+  'EMAIL': "admintest@cushier.io",
+  'NO_HP': "085954479380",
+  'FOTO': null,
+  'LAST_LOGOUT': "2019-09-28 00:00:00",
+};
 
 enum ItemStatus {
   GOOD,

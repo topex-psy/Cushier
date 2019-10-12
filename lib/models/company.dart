@@ -17,6 +17,26 @@ class CompanyField {
   }
 }
 
+class OutletApi {
+  final int id;
+  final String nama;
+  final String alamat;
+
+  OutletApi({
+    this.id,
+    this.nama,
+    this.alamat,
+  });
+
+  factory OutletApi.fromJson(Map<String, dynamic> res) {
+    return res == null ? OutletApi() : OutletApi(
+      id: int.parse(res['ID']),
+      nama: res['JUDUL'],
+      alamat: res['ALAMAT'],
+    );
+  }
+}
+
 class CompanyApi {
   final int id;
   final int idJenisUsaha;
@@ -84,6 +104,19 @@ Future<dynamic> getListCompanyField() async {
   try {
     final http.Response response = await http.get(
       Uri.encodeFull(APP_HOST + "api/get/company_field"),
+      headers: {"Accept": "application/json"}
+    );
+    return json.decode(response.body);
+  } catch (e) {
+    print(e);
+    return null;
+  }
+}
+
+Future<dynamic> getListOutlet({int idCompany}) async {
+  try {
+    final http.Response response = await http.get(
+      Uri.encodeFull(APP_HOST + "api/get/outlet?cid=$idCompany"),
       headers: {"Accept": "application/json"}
     );
     return json.decode(response.body);

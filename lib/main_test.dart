@@ -881,10 +881,11 @@ class LoginForm extends StatefulWidget {
 
   show({doOnDismiss}) => h.showAlert(
     warnaAksen: listPersonLevel[p.idLevel]?.warna,
-    doOnDismiss: doOnDismiss,
     showButton: false,
     isi: this,
-  );
+  ).then((res) {
+    doOnDismiss();
+  });
 
   @override
   _LoginFormState createState() => _LoginFormState();

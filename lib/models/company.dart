@@ -21,18 +21,44 @@ class OutletApi {
   final int id;
   final String nama;
   final String alamat;
+  final String telp;
+  final int jumlahPOS;
 
   OutletApi({
     this.id,
     this.nama,
     this.alamat,
+    this.telp,
+    this.jumlahPOS,
   });
 
   factory OutletApi.fromJson(Map<String, dynamic> res) {
     return res == null ? OutletApi() : OutletApi(
       id: int.parse(res['ID']),
-      nama: res['JUDUL'],
+      nama: res['NAMA'],
       alamat: res['ALAMAT'],
+      telp: res['TELEPON'],
+      jumlahPOS: int.parse(res['JUMLAH_POS']),
+    );
+  }
+}
+
+class OutletPOSApi {
+  final int id;
+  final int idOutlet;
+  final String nama;
+
+  OutletPOSApi({
+    this.id,
+    this.idOutlet,
+    this.nama,
+  });
+
+  factory OutletPOSApi.fromJson(Map<String, dynamic> res) {
+    return res == null ? OutletPOSApi() : OutletPOSApi(
+      id: int.parse(res['ID']),
+      idOutlet: int.parse(res['ID_OUTLET']),
+      nama: res['NAMA'],
     );
   }
 }
@@ -42,20 +68,26 @@ class CompanyApi {
   final int idJenisUsaha;
   final int  idBadanUsaha;
   final int idPemilik;
-  final String judul;
+  final String nama;
   final String deskripsi;
   final String logo;
   final String npwp;
+  final String website;
+  final String email;
+  final String cs;
 
   CompanyApi({
     this.id,
     this.idJenisUsaha,
     this.idBadanUsaha,
     this.idPemilik,
-    this.judul,
+    this.nama,
     this.deskripsi,
     this.logo,
     this.npwp,
+    this.website,
+    this.email,
+    this.cs,
   });
 
   factory CompanyApi.fromJson(Map<String, dynamic> res) {
@@ -64,10 +96,13 @@ class CompanyApi {
       idJenisUsaha: int.parse(res['ID_JENIS_USAHA'] ?? '0'),
       idBadanUsaha: int.parse(res['ID_BADAN_USAHA'] ?? '0'),
       idPemilik: int.parse(res['ID_PEMILIK']),
-      judul: res['JUDUL'],
+      nama: res['NAMA'],
       deskripsi: res['DESKRIPSI'],
       logo: res['LOGO'],
       npwp: res['NPWP'],
+      website: res['WEBSITE'],
+      email: res['EMAIL'],
+      cs: res['LAYANAN_KONSUMEN'],
     );
   }
 }
@@ -117,6 +152,19 @@ Future<dynamic> getListOutlet({int idCompany}) async {
   try {
     final http.Response response = await http.get(
       Uri.encodeFull(APP_HOST + "api/get/outlet?cid=$idCompany"),
+      headers: {"Accept": "application/json"}
+    );
+    return json.decode(response.body);
+  } catch (e) {
+    print(e);
+    return null;
+  }
+}
+
+Future<dynamic> getListOutletPOS({int idOutlet}) async {
+  try {
+    final http.Response response = await http.get(
+      Uri.encodeFull(APP_HOST + "api/get/outlet_pos?oid=$idOutlet"),
       headers: {"Accept": "application/json"}
     );
     return json.decode(response.body);

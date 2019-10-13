@@ -19,12 +19,12 @@ const Color THEME_COLOR = Colors.pink;
 
 const double CARD_PADDING = 13.0;
 const double CARD_ELEVATION = 12.0;
-const double CARD_RADIUS = 15.0;
+const double CARD_RADIUS = 5.0; //15.0;
 
 const double SPLASH_ICON_SIZE = 180.0;
 
 const bool DEBUG_ONBOARDING = false;
-const bool DEBUG_PERSON = true;
+const bool DEBUG_PERSON = false;
 const DEBUG_PERSON_DATA = {
   'UID': "o03egapIUAYsLojGSufw2hht2n72",
   'ID_LEVEL': '1',
@@ -42,6 +42,7 @@ const DEBUG_PERSON_DATA = {
   'NO_HP': "085954479380",
   'FOTO': null,
   'LAST_LOGOUT': "2019-09-28 00:00:00",
+  'PREMIUM': "0",
 };
 
 enum ItemStatus {

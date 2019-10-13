@@ -52,13 +52,16 @@ dependencies:
   showcaseview: ^0.1.3
   badges: ^1.1.0
   flash: ^1.1.0
+  flutter_circular_chart: ^0.1.0
   bezier_chart: ^1.0.14
   theme_provider: ^0.3.1
+  auto_size_text: ^2.1.0
+  custom_radio_grouped_button: ^1.0.0
 
   popup_menu: ^1.0.3
   launch_review: ^1.0.1
   preload_page_view: ^0.1.4
-  flutter_circular_chart: ^0.1.0
+  numberpicker: ^1.1.0
   
 dev_dependencies:
   flutter_test:
@@ -130,6 +133,21 @@ flutter:
         - asset: fonts/Flamante-Roma-Medium.ttf
         - asset: fonts/Flamante-Roma-MediumItalic.ttf
           style: italic
+    - family: FiraMono
+      fonts:
+        - asset: fonts/FiraMono-Regular.ttf
+    - family: NovaMono
+      fonts:
+        - asset: fonts/NovaMono-Regular.ttf
+    - family: OxygenMono
+      fonts:
+        - asset: fonts/OxygenMono-Regular.ttf
+    - family: saxMono
+      fonts:
+        - asset: fonts/saxmono.ttf
+    - family: ShareTechMono
+      fonts:
+        - asset: fonts/ShareTechMono-Regular.ttf
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

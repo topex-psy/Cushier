@@ -77,6 +77,7 @@ class PersonApi {
   final String noHP;
   final String foto;
   final String terakhir;
+  final int premium;
 
   PersonApi({
     @required this.uid,
@@ -95,6 +96,7 @@ class PersonApi {
     this.noHP,
     this.foto,
     this.terakhir,
+    this.premium,
   });
 
   factory PersonApi.fromJson(Map<String, dynamic> res) {
@@ -115,6 +117,7 @@ class PersonApi {
       noHP: res['NO_HP'],
       foto: res['FOTO'],
       terakhir: res['LAST_LOGOUT'] ?? res['LAST_LOGIN'],
+      premium: int.parse(res['PREMIUM'] ?? '0'),
     );
   }
 }

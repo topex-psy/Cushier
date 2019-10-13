@@ -301,7 +301,7 @@ class _RegisterAdminState extends State<RegisterAdmin> {
                           SizedBox(height: 8.0,),
                           CardInput(isRequired: true, icon: MdiIcons.calendar, placeholder: "Tanggal lahir", jenis: CardInputType.DATE_OF_BIRTH, controller: _tanggalLahirController, focusNode: _tanggalLahirFocusNode, initialValue: _tanggalLahir, onChanged: (val) {
                             try {
-                              DateTime value = val;
+                              DateTime value = val; //DateTime.parse(val);
                               setState(() {
                                 _tanggalLahir = value.toString().substring(0, 10);
                                 //_tanggalLahir = "${value.day.toString().padLeft(2,'0')}/${value.month.toString().padLeft(2,'0')}/${value.year}";
@@ -461,26 +461,6 @@ class _ListCompanyFieldState extends State<ListCompanyField> {
         transitionBuilder: (Widget child, Animation<double> animation) => FadeTransition(child: child, opacity: animation,),
         child: _child ?? LoadingCircle(noCard: true,),
       ),
-    );
-  }
-}
-
-class FormCaption extends StatelessWidget {
-  FormCaption({Key key, this.no, this.icon, this.teks, this.warna}) : super(key: key);
-  final int no;
-  final IconData icon;
-  final String teks;
-  final Color warna;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 15.0),
-      child: Row(children: <Widget>[
-        Icon(icon, color: warna, size: 40.0,),
-        SizedBox(width: 8.0,),
-        Text("$teks", style: TextStyle(fontSize: 16.0, fontFamily: 'FlamanteRoma', color: ThemeProvider.themeOf(context).id == THEME_LIGHT ? warna : Colors.white),),
-      ],),
     );
   }
 }

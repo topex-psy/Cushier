@@ -210,6 +210,26 @@ class _CardInputState extends State<CardInput> {
   }
 }
 
+class FormCaption extends StatelessWidget {
+  FormCaption({Key key, this.no, this.icon, this.teks, this.warna}) : super(key: key);
+  final int no;
+  final IconData icon;
+  final String teks;
+  final Color warna;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 15.0),
+      child: Row(children: <Widget>[
+        Icon(icon, color: warna, size: 40.0,),
+        SizedBox(width: 8.0,),
+        Text("$teks", style: TextStyle(fontSize: 16.0, fontFamily: 'FlamanteRoma', color: ThemeProvider.themeOf(context).id == THEME_LIGHT ? warna : Colors.white),),
+      ],),
+    );
+  }
+}
+
 class PersonIcon extends StatefulWidget {
   PersonIcon({Key key, this.icon, this.teks, this.warna, this.aksi}) : super(key: key);
   final IconData icon;

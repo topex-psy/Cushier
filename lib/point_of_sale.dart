@@ -5,7 +5,7 @@ import 'utils/utils.dart';
 
 class PointOfSale extends StatefulWidget {
   PointOfSale({Key key, @required this.outlet}) : super(key: key);
-  final OutletApi outlet;
+  final OutletPOSApi outlet;
 
   @override
   _PointOfSaleState createState() => _PointOfSaleState();

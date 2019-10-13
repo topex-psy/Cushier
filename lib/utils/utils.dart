@@ -15,6 +15,7 @@ import 'widgets.dart';
 MyHelper h;
 MyAppHelper a;
 bool isDebugMode = false;
+PersonApi currentPerson;
 
 final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
@@ -78,7 +79,7 @@ class MyAppHelper {
     });
   }
 
-  startPOSSession(OutletApi outlet) async {
+  startPOSSession(OutletPOSApi outlet) async {
     Map results = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => PointOfSale(outlet: outlet,)));
     print(results);
   }
@@ -341,6 +342,15 @@ class MyHelper {
       print("OPENING URL $url...");
     },
   );
+
+  //fungsi untuk menentukan apakah data batch mengandung keyword tertentu
+  bool filterData(List<String> data, String keyword) {
+    keyword = keyword.toLowerCase();
+    for (final dat in data) {
+      if (dat.toLowerCase().contains(keyword)) return true;
+    }
+    return false;
+  }
 
   //fungsi yang menyingkat nominal ke "rb" atau "jt"
   String singkatNominal(double nominal, {int decimal = 0}) {

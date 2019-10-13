@@ -16,6 +16,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'models/person.dart';
 import 'utils/constants.dart';
+import 'utils/provider.dart';
 import 'utils/routes.dart';
 import 'utils/utils.dart';
 import 'utils/widgets.dart';
@@ -26,7 +27,7 @@ import 'splash.dart';
 
 void main() => runApp(MyApp());
 
-class AppState with ChangeNotifier {
+/* class AppState with ChangeNotifier {
   AppState();
 
   bool _isLoading = false;
@@ -43,27 +44,6 @@ class AppState with ChangeNotifier {
     _isStarted = true;
     notifyListeners();
   }
-  set startWithPerson(PersonApi person) {
-    _currentPerson = person;
-    _isStarted = true;
-    notifyListeners();
-  }
-
-  //current person
-  PersonApi _currentPerson;
-  PersonApi get currentPerson => _currentPerson;
-  set currentPerson(PersonApi person) {
-    _currentPerson = person;
-    notifyListeners();
-  }
-
-  //current scaffold key
-  /* GlobalKey<ScaffoldState> _currentScaffoldKey;
-  GlobalKey<ScaffoldState> get currentScaffoldKey => _currentScaffoldKey;
-  set currentScaffoldKey(GlobalKey<ScaffoldState> key) {
-    _currentScaffoldKey = key;
-    notifyListeners();
-  } */
 
   //current menu
   int _currentMenu = -1;
@@ -72,7 +52,7 @@ class AppState with ChangeNotifier {
     _currentMenu = indeks;
     notifyListeners();
   }
-}
+} */
 
 class MyApp extends StatelessWidget {
   @override
@@ -217,7 +197,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
         _showTour();
       } else if (me != null) {
         print("SET STARTED WITH PERSON: ${me?.namaLengkap}");
-        appState.startWithPerson = me;
+        currentPerson = me;
+        appState.isStarted = true;
       } else {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String rememberMe = prefs.getString('rememberMe');
@@ -375,7 +356,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     return WillPopScope(
       onWillPop: () async {
-        if (appState.currentPerson == null && appState.currentMenu > -1) {
+        if (currentPerson == null && appState.currentMenu > -1) {
           appState.currentMenu = -1;
           return false;
         }
@@ -396,14 +377,14 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             child: NavLogo(),
           ) : Container(),
           actions: appState.isStarted ? <Widget>[
-            appState.currentPerson == null ? SizedBox() : Badge(
+            currentPerson == null ? SizedBox() : Badge(
               badgeColor: Colors.redAccent,
               badgeContent: Text("3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Colors.white)), //TODO num notif
               position: BadgePosition.topRight(top: -3.0, right: 3.0),
               child: IconButton(key: btnNotifKey, icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: _showNotif,),
             ),
             PopupMenuButton<MenuBarValues>(
-              icon: Icon(appState.currentPerson == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
+              icon: Icon(currentPerson == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
               tooltip: "Menu",
               offset: Offset(0, 10.0),
               onSelected: (MenuBarValues value) {
@@ -423,7 +404,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                         logout({'uid': uid}).then((status) {
                           print("POST LOGOUT STATUS: ${status?.status}");
                           print("POST LOGOUT PESAN: ${status?.message}");
-                          appState.currentPerson = null;
+                          currentPerson = null;
                         });
                       });
                     });
@@ -432,7 +413,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               },
               itemBuilder: (BuildContext context) {
                 return _menu.map<PopupMenuEntry<MenuBarValues>>((menu) {
-                  if (menu.isNonGuest && appState.currentPerson == null) return null;
+                  if (menu.isNonGuest && currentPerson == null) return null;
                   return menu.value == null ? PopupMenuDivider(height: 10.0) : PopupMenuItem(value: menu.value, child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: <Widget>[
                     Icon(menu.icon, color: Colors.grey,),
                     SizedBox(width: 8.0,),
@@ -448,7 +429,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           child: Stack(children: <Widget>[
             Positioned.fill(child: Container(
               child: SingleChildScrollView(
-                child: appState.currentPerson == null ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                child: currentPerson == null ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
                   SizedBox(height: 25.0,),
                   Column(
                     children: listPersonLevel.map((int i, PersonLevelInfo t) {
@@ -475,7 +456,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(height: 40.0,),
-                ],) : Dashboard(me: appState.currentPerson),
+                ],) : Dashboard(me: currentPerson),
               ),
             ),),
             appState.isStarted ? TopGradient() : Container(),
@@ -535,7 +516,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
 
   Future _cekLastPersons() async {
     final appState = Provider.of<AppState>(context);
-    if (appState.currentPerson == null && appState.isStarted) _introAnimation();
+    if (currentPerson == null && appState.isStarted) _introAnimation();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> lastPersons = prefs.getStringList('lastPersons') ?? [];
@@ -627,13 +608,12 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   }
 
   _register() async {
-    final appState = Provider.of<AppState>(context);
     if (widget.info.level == PersonLevel.USER_ADMIN) {
       Map results = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ThemeConsumer(child: RegisterAdmin(warna: widget.info.warna))));
       if (results != null && results.containsKey('me')) {
         print("REGISTER ADMIN RESULT = $results");
         PersonApi me = results['me'];
-        appState.currentPerson = me;
+        currentPerson = me;
       }
     } else _scan();
   }
@@ -890,7 +870,7 @@ class _LoginFormState extends State<LoginForm> {
             firebaseAuth.signOut();
           } else {
             PersonApi p = PersonApi.fromJson(status.result);
-            appState.currentPerson = p;
+            currentPerson = p;
 
             print("STEP 3: save last person, last menu, and remember");
             SharedPreferences.getInstance().then((prefs) {

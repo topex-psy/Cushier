@@ -487,7 +487,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(height: 40.0,),
-                ],) : Dashboard(me: appState.currentPerson),
+                ],) : Dashboard(),
               ),
             ),),
             appState.isStarted ? TopGradient() : Container(),

@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 const String APP_NAME = "Cushier";
 const String APP_TAGLINE = "Mesin Kasir di Smartphone Anda";
 //TODO pake url web kalo udah dihosting
-//const String APP_HOST = "http://192.168.1.12/cushier/public/";
-const String APP_HOST = "http://192.168.42.242/cushier/public/";
-//const String APP_HOST = "http://10.0.2.2/cushier/public/";
+const String APP_HOST = "http://192.168.1.65/cushier/public/";
+// const String APP_HOST = "http://192.168.42.242/cushier/public/";
+// const String APP_HOST = "http://10.0.2.2/cushier/public/";
 const String APP_AUTHOR = "Taufik Nur Rahmanda";
 
 const String TOUR_TITLE1 = "Anda Seorang Pemilik Usaha?";

@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 enum DataJumlah {
+  NOTIF,
   OUTLET,
   OUTLET_POS,
 }
@@ -25,10 +26,6 @@ class AppState with ChangeNotifier {
     _isStarted = true;
     notifyListeners();
   }
-  /* set jumlah(Map<DataJumlah, int> jumlah) {
-    _jumlah = jumlah;
-    notifyListeners();
-  } */
   updateJumlah(DataJumlah data, int jumlah) {
     _jumlah[data] = jumlah;
     notifyListeners();
@@ -39,6 +36,15 @@ class AppState with ChangeNotifier {
   int get currentMenu => _currentMenu;
   set currentMenu(int indeks) {
     _currentMenu = indeks;
+    notifyListeners();
+  }
+
+  //current login
+  bool _isLoggedIn = false;
+  bool get isLoggedIn => _isLoggedIn;
+  set isLoggedIn(bool value) {
+    _isLoggedIn = value;
+    if (value) _isStarted = true;
     notifyListeners();
   }
 }

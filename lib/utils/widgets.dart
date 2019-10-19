@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:super_tooltip/super_tooltip.dart';
 import 'package:theme_provider/theme_provider.dart';
 import 'constants.dart';
 
@@ -230,6 +231,66 @@ class FormCaption extends StatelessWidget {
   }
 }
 
+/* class CardPremium extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.amber[100],
+      child: Padding(padding: EdgeInsets.all(10.0), child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text("Pengaturan ini tidak akan disimpan karena hanya tersedia untuk plan premium.", style: TextStyle(fontSize: 12.0),),
+          FlatButton(onPressed: () {}, child: Text("Tingkatkan Plan", style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold),),),
+        ],
+      ),),
+    );
+  }
+} */
+
+class ChipPremium extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var tooltip = SuperTooltip(
+      popupDirection: TooltipDirection.down,
+      backgroundColor: Colors.amber[100],
+      borderColor: Colors.amber[200],
+      borderWidth: 2.0,
+      arrowLength: 15.0,
+      arrowBaseWidth: 20.0,
+      arrowTipDistance: 10.0,
+      hasShadow: false,
+      content: Material(
+        elevation: 0.0,
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            Text("Pengaturan ini tidak akan disimpan karena hanya tersedia untuk plan premium.", style: TextStyle(fontSize: 13.0),),
+            SizedBox(height: 10.0,),
+            SizedBox(width: 160.0, height: 30.0, child: UiButton(color: Colors.amber, teks: "Tingkatkan Plan", ukuranTeks: 13.0, ukuranIcon: 13.0, warnaTeks: Colors.black87, icon: MdiIcons.lockOpen, aksi: () {
+              //TODO membership plan
+            },),),
+          ],
+        ),
+      ),
+    );
+    return GestureDetector(
+      onTap: () => tooltip.show(context),
+      child: Material(color: Colors.amber, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)), child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 6.0),
+        child: Row(
+          children: <Widget>[
+            Icon(MdiIcons.lock, size: 11.0,),
+            SizedBox(width: 4.0,),
+            Text("Premium", style: TextStyle(fontSize: 11.0, fontWeight: FontWeight.bold, height: 1.0,),),
+          ],
+        ),
+      )),
+    );
+  }
+}
+
 class PersonIcon extends StatefulWidget {
   PersonIcon({Key key, this.icon, this.teks, this.warna, this.aksi}) : super(key: key);
   final IconData icon;
@@ -277,10 +338,11 @@ class _PersonIconState extends State<PersonIcon> {
 }
 
 class UiButton extends StatelessWidget {
-  UiButton({this.btnKey, this.color, this.icon, this.ukuranIcon, this.teks, this.aksi, this.radius = 30.0, this.elevation = 2.0, this.ukuranTeks = 0.0, this.posisiTeks});
+  UiButton({this.btnKey, this.color, this.icon, this.ukuranIcon, this.teks, this.aksi, this.radius = 30.0, this.elevation = 2.0, this.warnaTeks, this.ukuranTeks = 0.0, this.posisiTeks});
   final Color color;
   final IconData icon;
   final String teks;
+  final Color warnaTeks;
   final double ukuranTeks;
   final double ukuranIcon;
   final double radius;
@@ -304,8 +366,8 @@ class UiButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(radius)
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisAlignment: posisiTeks ?? MainAxisAlignment.start, children: <Widget>[
-        icon == null ? SizedBox() : Icon(icon, color: Colors.white, size: ukuranIcon ?? (ukuranFont * 1.2),),
-        teks == null ? SizedBox() : Padding(padding: EdgeInsets.only(left: 8.0), child: Text(teks, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: ukuranFont),),),
+        icon == null ? SizedBox() : Icon(icon, color: warnaTeks ?? Colors.white, size: ukuranIcon ?? (ukuranFont * 1.2),),
+        teks == null ? SizedBox() : Padding(padding: EdgeInsets.only(left: 8.0), child: Text(teks, style: TextStyle(color: warnaTeks ?? Colors.white, fontWeight: FontWeight.bold, fontSize: ukuranFont),),),
       ],),
       onPressed: aksi,
     );

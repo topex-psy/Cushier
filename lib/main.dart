@@ -27,33 +27,6 @@ import 'splash.dart';
 
 void main() => runApp(MyApp());
 
-/* class AppState with ChangeNotifier {
-  AppState();
-
-  bool _isLoading = false;
-  bool _isStarted = false;
-
-  bool get isLoading => _isLoading;
-  bool get isStarted => _isStarted;
-
-  set isLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-  set isStarted(bool started) {
-    _isStarted = true;
-    notifyListeners();
-  }
-
-  //current menu
-  int _currentMenu = -1;
-  int get currentMenu => _currentMenu;
-  set currentMenu(int indeks) {
-    _currentMenu = indeks;
-    notifyListeners();
-  }
-} */
-
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -198,7 +171,8 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
       } else if (me != null) {
         print("SET STARTED WITH PERSON: ${me?.namaLengkap}");
         currentPerson = me;
-        appState.isStarted = true;
+        appState.isLoggedIn = true;
+        // appState.isStarted = true;
       } else {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         String rememberMe = prefs.getString('rememberMe');
@@ -356,7 +330,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
 
     return WillPopScope(
       onWillPop: () async {
-        if (currentPerson == null && appState.currentMenu > -1) {
+        if (!appState.isLoggedIn && appState.currentMenu > -1) {
           appState.currentMenu = -1;
           return false;
         }
@@ -377,34 +351,40 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
             child: NavLogo(),
           ) : Container(),
           actions: appState.isStarted ? <Widget>[
-            currentPerson == null ? SizedBox() : Badge(
+            //TODO interval update DataJumlah.NOTIF
+            !appState.isLoggedIn || (appState.jumlah[DataJumlah.NOTIF] ?? 0) == 0 ? SizedBox() : Badge(
               badgeColor: Colors.redAccent,
-              badgeContent: Text("3", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Colors.white)), //TODO num notif
+              badgeContent: Text("${appState.jumlah[DataJumlah.NOTIF]}", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.0, color: Colors.white)),
               position: BadgePosition.topRight(top: -3.0, right: 3.0),
               child: IconButton(key: btnNotifKey, icon: Icon(MdiIcons.bell, color: Colors.grey, size: 20.0), onPressed: _showNotif,),
             ),
             PopupMenuButton<MenuBarValues>(
-              icon: Icon(currentPerson == null ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
+              icon: Icon(!appState.isLoggedIn ? MdiIcons.menu : MdiIcons.account, color: Colors.grey),
               tooltip: "Menu",
               offset: Offset(0, 10.0),
               onSelected: (MenuBarValues value) {
                 print("KLIK MENU = $value");
                 switch (value) {
-                  //TODO menu action
-                  case MenuBarValues.PROFILE: break;
-                  case MenuBarValues.ACCOUNT_SETTINGS: break;
-                  case MenuBarValues.HELP_CENTER: break;
+                  case MenuBarValues.PROFILE:
+                    //TODO menu action profile
+                    break;
+                  case MenuBarValues.ACCOUNT_SETTINGS:
+                    //TODO menu action account settings
+                    break;
+                  case MenuBarValues.HELP_CENTER:
+                    //TODO menu action help center
+                    break;
                   case MenuBarValues.RATE_US:
                     LaunchReview.launch();
                     break;
                   case MenuBarValues.LOGOUT:
                     firebaseAuth.currentUser().then((user) {
-                      String uid = user.uid;
                       firebaseAuth.signOut().then((a) {
-                        logout({'uid': uid}).then((status) {
+                        logout({'uid': user.uid}).then((status) {
                           print("POST LOGOUT STATUS: ${status?.status}");
                           print("POST LOGOUT PESAN: ${status?.message}");
                           currentPerson = null;
+                          appState.isLoggedIn = false;
                         });
                       });
                     });
@@ -413,7 +393,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
               },
               itemBuilder: (BuildContext context) {
                 return _menu.map<PopupMenuEntry<MenuBarValues>>((menu) {
-                  if (menu.isNonGuest && currentPerson == null) return null;
+                  if (menu.isNonGuest && !appState.isLoggedIn) return null;
                   return menu.value == null ? PopupMenuDivider(height: 10.0) : PopupMenuItem(value: menu.value, child: Row(crossAxisAlignment: CrossAxisAlignment.center, mainAxisSize: MainAxisSize.min, children: <Widget>[
                     Icon(menu.icon, color: Colors.grey,),
                     SizedBox(width: 8.0,),
@@ -429,8 +409,18 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
           child: Stack(children: <Widget>[
             Positioned.fill(child: Container(
               child: SingleChildScrollView(
-                child: currentPerson == null ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-                  SizedBox(height: 25.0,),
+                child: !appState.isLoggedIn ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
+                  Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text('Selamat Datang!', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18.0)),
+                        SizedBox(height: 4.0,),
+                        Text('Silakan pilih peran Anda untuk memulai pekerjaan:', style: TextStyle(fontWeight: FontWeight.normal)),
+                      ],
+                    ),
+                  ),
                   Column(
                     children: listPersonLevel.map((int i, PersonLevelInfo t) {
                       return MapEntry(i, CardMenu(
@@ -456,7 +446,7 @@ class _HomeState extends State<Home> with TickerProviderStateMixin {
                     ),
                   ),
                   SizedBox(height: 40.0,),
-                ],) : Dashboard(me: currentPerson),
+                ],) : Dashboard(),
               ),
             ),),
             appState.isStarted ? TopGradient() : Container(),
@@ -516,7 +506,7 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
 
   Future _cekLastPersons() async {
     final appState = Provider.of<AppState>(context);
-    if (currentPerson == null && appState.isStarted) _introAnimation();
+    if (!appState.isLoggedIn && appState.isStarted) _introAnimation();
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String> lastPersons = prefs.getStringList('lastPersons') ?? [];
@@ -608,12 +598,14 @@ class CardMenuState extends State<CardMenu> with TickerProviderStateMixin {
   }
 
   _register() async {
+    final appState = Provider.of<AppState>(context);
     if (widget.info.level == PersonLevel.USER_ADMIN) {
       Map results = await Navigator.of(context).push(MaterialPageRoute(builder: (_) => ThemeConsumer(child: RegisterAdmin(warna: widget.info.warna))));
       if (results != null && results.containsKey('me')) {
         print("REGISTER ADMIN RESULT = $results");
         PersonApi me = results['me'];
         currentPerson = me;
+        appState.isLoggedIn = true;
       }
     } else _scan();
   }
@@ -780,7 +772,7 @@ class LoginForm extends StatefulWidget {
     showButton: false,
     isi: this,
   ).then((res) {
-    doOnDismiss();
+    if (doOnDismiss != null) doOnDismiss();
   });
 
   @override
@@ -871,6 +863,7 @@ class _LoginFormState extends State<LoginForm> {
           } else {
             PersonApi p = PersonApi.fromJson(status.result);
             currentPerson = p;
+            appState.isLoggedIn = true;
 
             print("STEP 3: save last person, last menu, and remember");
             SharedPreferences.getInstance().then((prefs) {

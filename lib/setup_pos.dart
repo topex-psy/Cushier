@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:custom_radio_grouped_button/custom_radio_grouped_button.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:numberpicker/numberpicker.dart';
@@ -7,6 +8,8 @@ import 'utils/utils.dart';
 import 'utils/widgets.dart';
 
 const PAGE_TITLE = "Setup POS";
+const STRUK_LOGO_SIZE = 15;
+const STRUK_FONT_FAMILY = 'FiraMono';
 const STRUK_FONT_SIZE = 13.0;
 const STRUK_FONT_SIZE_MIN = 11.0;
 const STRUK_FONT_SIZE_MAX = 16.0;
@@ -23,16 +26,12 @@ enum PosisiLogo {
   ATAS,
   KIRI,
   KANAN,
-  // BAWAH,
-  // SEMBUNYI,
 }
 
 Map<PosisiLogo, String> posisiLogoLabel = {
   PosisiLogo.ATAS: 'Atas',
   PosisiLogo.KIRI: 'Kiri',
   PosisiLogo.KANAN: 'Kanan',
-  // PosisiLogo.BAWAH: 'Bawah',
-  // PosisiLogo.SEMBUNYI: 'Sembunyikan',
 };
 
 class SetupPOS extends StatefulWidget {
@@ -44,23 +43,24 @@ class SetupPOS extends StatefulWidget {
   _SetupPOSState createState() => _SetupPOSState();
 }
 
-class _SetupPOSState extends State<SetupPOS> {
-  PosisiLogo _strukPosisiLogo;
-  String _fontFamilyBefore;
-  String _fontFamily;
-  double _fontSizeBefore;
-  double _fontSize;
+class _SetupPOSState extends State<SetupPOS> with SingleTickerProviderStateMixin {
+  PosisiLogo _strukPosisiLogo = PosisiLogo.ATAS;
+  String _fontFamilyBefore = STRUK_FONT_FAMILY;
+  String _fontFamily = STRUK_FONT_FAMILY;
+  double _fontSizeBefore = STRUK_FONT_SIZE;
+  double _fontSize = STRUK_FONT_SIZE;
   bool _tampilLogoUsaha = true;
   bool _tampilNamaOutlet = false;
   bool _tampilCatatan = false;
-  int _ukuranLogo = 15;
+  int _ukuranLogo = STRUK_LOGO_SIZE;
   String _catatan = "";
 
   TextEditingController _catatanController;
   FocusNode _catatanFocusNode;
 
-  @override
-  void initState() {
+  TabController _tabController;
+
+  _getSetupPOS() {
     //TODO get data setting awal
     _strukPosisiLogo = posisiLogoLabel.keys.toList()[0];
     _fontFamily = STRUK_FONT_LIST[0];
@@ -68,7 +68,7 @@ class _SetupPOSState extends State<SetupPOS> {
     _tampilLogoUsaha = true;
     _tampilNamaOutlet = true;
     _tampilCatatan = false;
-    _ukuranLogo = 15;
+    _ukuranLogo = STRUK_LOGO_SIZE;
     _catatanController = TextEditingController();
     _catatanFocusNode = FocusNode();
     _catatan = "Barang yang sudah dibeli tidak dapat dikembalikan";
@@ -80,12 +80,21 @@ class _SetupPOSState extends State<SetupPOS> {
     });
     _fontFamilyBefore = _fontFamily;
     _fontSizeBefore = _fontSize;
+  }
+
+  @override
+  void initState() {
+    _tabController = TabController(vsync: this, length: 2);
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _getSetupPOS();
+    });
   }
 
   @override
   void dispose() {
     _catatanController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -149,12 +158,102 @@ class _SetupPOSState extends State<SetupPOS> {
           ],),
           titleSpacing: 0.0,
           automaticallyImplyLeading: false,
+          bottom: TabBar(
+            indicatorSize: TabBarIndicatorSize.tab,
+            indicator: BubbleTabIndicator(
+              indicatorHeight: 30.0,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabBarIndicatorSize: TabBarIndicatorSize.tab,
+            ),
+            controller: _tabController,
+            isScrollable: true,
+            unselectedLabelColor: Colors.grey[600],
+            tabs: <Widget>[
+              Tab(text: "Format Struk",),
+              Tab(text: "POS",),
+            ],
+          ),
         ),
         body: Stack(children: <Widget>[
           Positioned.fill(child: SingleChildScrollView(
             padding: EdgeInsets.all(20.0),
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
-              FormCaption(icon: MdiIcons.receipt, teks: "Format Struk",),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  Text("Format Font:", style: TextStyle(fontWeight: FontWeight.bold),),
+                  Offstage(
+                    offstage: currentPerson.premium > 0 || (_fontFamily == _fontFamilyBefore && _fontSize == _fontSizeBefore),
+                    child: ChipPremium(),
+                  ),
+                ],
+              ),
+              SizedBox(height: 12.0,),
+              Row(children: <Widget>[
+                Text("Font: "),
+                SizedBox(width: 4.0,),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
+                  clipBehavior: Clip.antiAlias,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        isDense: true,
+                        underline: null,
+                        value: _fontFamily,
+                        hint: Text("Pilih Font"),
+                        style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
+                        onChanged: (String font) {
+                          setState(() {
+                            _fontFamily = font;
+                          });
+                        },
+                        items: STRUK_FONT_LIST.map<DropdownMenuItem<String>>((String font) {
+                          return DropdownMenuItem<String>(
+                            value: font,
+                            child: Text(font),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 8.0,),
+                Card(
+                  margin: EdgeInsets.zero,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
+                  clipBehavior: Clip.antiAlias,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<double>(
+                        isDense: true,
+                        underline: null,
+                        value: _fontSize,
+                        hint: Text("Ukuran"),
+                        style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
+                        onChanged: (double size) {
+                          setState(() {
+                            _fontSize = size;
+                          });
+                        },
+                        items: List<DropdownMenuItem<double>>.generate((STRUK_FONT_SIZE_MAX - STRUK_FONT_SIZE_MIN).toInt(), (i) => DropdownMenuItem<double>(
+                          value: STRUK_FONT_SIZE_MIN + i,
+                          child: Text("${STRUK_FONT_SIZE_MIN + i}"),
+                        )),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(child: Container(),),
+              ],),
+              /* currentPerson.premium > 0 || (_fontFamily == _fontFamilyBefore && _fontSize == _fontSizeBefore) ? SizedBox() : Padding(
+                padding: EdgeInsets.only(top: 10.0),
+                child: CardPremium(),
+              ), */
+              SizedBox(height: 20.0,),
               Container(constraints: BoxConstraints(minWidth: 150, maxWidth: 350), width: double.infinity, child: Theme(
                 data: Theme.of(context).copyWith(textTheme: TextTheme(body1: textStyle)),
                 child: Material(
@@ -173,6 +272,12 @@ class _SetupPOSState extends State<SetupPOS> {
                           _strukPosisiLogo == PosisiLogo.KIRI ? Expanded(child: strukInfo,) : strukInfo,
                         ],),
                         SizedBox(height: _fontSize),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: <Widget>[
+                            Text("No: 00027"),
+                          ],
+                        ),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: <Widget>[
@@ -271,94 +376,6 @@ class _SetupPOSState extends State<SetupPOS> {
                 ),
               ),),
               SizedBox(height: 20.0,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Text("Format Font:", style: TextStyle(fontWeight: FontWeight.bold),),
-                  currentPerson.premium == 0 ? Chip(backgroundColor: Colors.amber, label: Row(
-                    children: <Widget>[
-                      Icon(MdiIcons.lock, size: 12.0,),
-                      SizedBox(width: 4.0,),
-                      Text("Premium", style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold),),
-                    ],
-                  )) : SizedBox(),
-                ],
-              ),
-              SizedBox(height: 20.0,),
-              Row(children: <Widget>[
-                Text("Font: "),
-                SizedBox(width: 4.0,),
-                Card(
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
-                  clipBehavior: Clip.antiAlias,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isDense: true,
-                        underline: null,
-                        value: _fontFamily,
-                        hint: Text("Pilih Font"),
-                        style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
-                        onChanged: (String font) {
-                          setState(() {
-                            _fontFamily = font;
-                          });
-                        },
-                        items: STRUK_FONT_LIST.map<DropdownMenuItem<String>>((String font) {
-                          return DropdownMenuItem<String>(
-                            value: font,
-                            child: Text(font),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(width: 8.0,),
-                Card(
-                  margin: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
-                  clipBehavior: Clip.antiAlias,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<double>(
-                        isDense: true,
-                        underline: null,
-                        value: _fontSize,
-                        hint: Text("Ukuran"),
-                        style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
-                        onChanged: (double size) {
-                          setState(() {
-                            _fontSize = size;
-                          });
-                        },
-                        items: List<DropdownMenuItem<double>>.generate((STRUK_FONT_SIZE_MAX - STRUK_FONT_SIZE_MIN).toInt(), (i) => DropdownMenuItem<double>(
-                          value: STRUK_FONT_SIZE_MIN + i,
-                          child: Text("${STRUK_FONT_SIZE_MIN + i}"),
-                        )),
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(child: Container(),),
-              ],),
-              currentPerson.premium > 0 || (_fontFamily == _fontFamilyBefore && _fontSize == _fontSizeBefore) ? SizedBox() : Padding(
-                padding: EdgeInsets.only(top: 10.0),
-                child: Card(
-                  color: Colors.amber[100],
-                  child: Padding(padding: EdgeInsets.all(10.0), child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text("Pengaturan ini tidak akan disimpan karena hanya tersedia untuk plan premium.", style: TextStyle(fontSize: 12.0),),
-                      FlatButton(onPressed: () {}, child: Text("Tingkatkan Plan", style: TextStyle(fontSize: 12.0, fontWeight: FontWeight.bold),),),
-                    ],
-                  ),),
-                ),
-              ),
-              SizedBox(height: 20.0,),
               Text("Kustomisasi:", style: TextStyle(fontWeight: FontWeight.bold),),
               SizedBox(height: 20.0,),
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: <Widget>[
@@ -392,10 +409,8 @@ class _SetupPOSState extends State<SetupPOS> {
                   SizedBox(width: 4.0,),
                   Transform.scale(scale: 0.8, child: NumberPicker.integer(
                     initialValue: _ukuranLogo,
-                    minValue: 1,
-                    maxValue: 30,
-                    infiniteLoop: true,
-                    step: 1,
+                    minValue: 5,
+                    maxValue: 20,
                     onChanged: (val) {
                       setState(() => _ukuranLogo = val);
                     }

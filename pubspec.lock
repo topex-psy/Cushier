@@ -64,6 +64,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  bubble_tab_indicator:
+    dependency: "direct main"
+    description:
+      name: bubble_tab_indicator
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.4"
   charcode:
     dependency: transitive
     description:
@@ -394,6 +401,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.5"
+  super_tooltip:
+    dependency: "direct main"
+    description:
+      name: super_tooltip
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.0"
   term_glyph:
     dependency: transitive
     description:

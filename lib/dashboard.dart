@@ -10,7 +10,6 @@ import 'package:percent_indicator/percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'models/company.dart';
-import 'models/person.dart';
 import 'utils/constants.dart';
 import 'utils/provider.dart';
 import 'utils/utils.dart';
@@ -18,23 +17,17 @@ import 'utils/widgets.dart';
 import 'setup_pos.dart';
 
 class Dashboard extends StatelessWidget {
-  Dashboard({Key key, this.me}) : super(key: key);
-  final PersonApi me;
-
   @override
   Widget build(BuildContext context) {
     return ShowCaseWidget(
       builder: Builder(
-        builder: (context) => DashboardAdmin(me: me,),
+        builder: (context) => DashboardAdmin(),
       ),
     );
   }
 }
 
 class DashboardAdmin extends StatefulWidget {
-  DashboardAdmin({Key key, this.me}) : super(key: key);
-  final PersonApi me;
-
   @override
   _DashboardAdminState createState() => _DashboardAdminState();
 }
@@ -50,7 +43,7 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
   Animation _animation;
 
   _getDataUsaha() {
-    getListCompany(uid: widget.me.uid).then((responseJson) {
+    getListCompany(uid: currentPerson.uid).then((responseJson) {
       print("DATA LIST COMPANY RESPONSE:" + responseJson.toString());
       if (responseJson == null) {
         print("DATA LIST COMPANY EXCEPTION NULL!");
@@ -62,8 +55,8 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
         for (Map res in responseJson["result"]) {
           CompanyApi company = CompanyApi.fromJson(res);
           listCompany.add(company);
-          if (company.id == widget.me.idUsaha) {
-            print("ID USAHA SAYA = ${widget.me.idUsaha}");
+          if (company.id == currentPerson.idUsaha) {
+            print("ID USAHA SAYA = ${currentPerson.idUsaha}");
             /* if ((myCompany.logo ?? "").isEmpty) {
               Future.delayed(Duration(milliseconds: 1500), () {
                 ShowCaseWidget.of(context).startShowCase([_showCaseKey1]);
@@ -137,7 +130,7 @@ class _DashboardAdminState extends State<DashboardAdmin> with TickerProviderStat
                   Expanded(child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text("Halo, ${widget.me.namaLengkap}!", textAlign: TextAlign.start, style: TextStyle(fontSize: 16.0),),
+                      Text("Halo, ${currentPerson.namaLengkap}!", textAlign: TextAlign.start, style: TextStyle(fontSize: 16.0),),
                       _company == null ? SizedBox() : Transform.translate(offset: Offset(-10.0, 0.0), child: Card(
                         margin: EdgeInsets.only(top: 7.0),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
@@ -473,18 +466,17 @@ class CardSale extends StatefulWidget {
 }
 
 class _CardSaleState extends State<CardSale> {
-  //TODO muat data berdasarkan widget.company
-
-  Map<SaleDuration, String> _listJangkaWaktu = {
+  final Map<SaleDuration, String> _listJangkaWaktu = {
     SaleDuration.HARIAN: 'Hari ini',
     SaleDuration.MINGGUAN: 'Minggu ini',
     SaleDuration.BULANAN: 'Bulan ini',
   };
-  SaleDuration _jangkaWaktu = SaleDuration.HARIAN;
-  double _nominal;
-  bool _isPOSReady = false;
+
   List<OutletApi> _listOutlet = [];
   OutletApi _outlet;
+  SaleDuration _jangkaWaktu = SaleDuration.HARIAN;
+  bool _isPOSReady = false;
+  double _nominal;
 
   Widget grafikPenjualan(BuildContext context) {
     final fromDate = DateTime(2019, 05, 22);
@@ -600,41 +592,41 @@ class _CardSaleState extends State<CardSale> {
                   SizedBox(width: 15.0,),
                   Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: <Widget>[
                     Card(
-                        margin: EdgeInsets.only(top: 7.0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
-                        clipBehavior: Clip.antiAlias,
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<OutletApi>(
-                              isDense: true,
-                              underline: null,
-                              value: _outlet,
-                              hint: Text("Pilih Outlet"),
-                              style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
-                              onChanged: (OutletApi outlet) {
-                                setState(() {
-                                  _outlet = outlet;
-                                  _getSaleData();
-                                });
-                              },
-                              items: _listOutlet.map<DropdownMenuItem<OutletApi>>((OutletApi outlet) {
-                                return DropdownMenuItem<OutletApi>(
-                                  value: outlet,
-                                  child: Text(outlet.nama, style: TextStyle(fontWeight: FontWeight.bold),),
-                                );
-                              }).toList(),
-                            ),
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30.0),),
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<OutletApi>(
+                            isDense: true,
+                            underline: null,
+                            value: _outlet,
+                            hint: Text("Pilih Outlet"),
+                            style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
+                            onChanged: (OutletApi outlet) {
+                              setState(() {
+                                _outlet = outlet;
+                                _getSaleData();
+                              });
+                            },
+                            items: _listOutlet.map<DropdownMenuItem<OutletApi>>((OutletApi outlet) {
+                              return DropdownMenuItem<OutletApi>(
+                                value: outlet,
+                                child: Text(outlet.nama, style: TextStyle(fontWeight: FontWeight.bold),),
+                              );
+                            }).toList(),
                           ),
                         ),
                       ),
+                    ),
                     Row(mainAxisAlignment: MainAxisAlignment.end, children: <Widget>[
                       Icon(MdiIcons.calendar, size: 14.0, color: Colors.grey,),
                       SizedBox(width: 6.0,),
                       DropdownButton(
                         value: _jangkaWaktu,
                         hint: Text("Jangka waktu", style: TextStyle(fontSize: 14.0),),
-                        style: TextStyle(fontSize: 14.0, color: Colors.black87),
+                        style: TextStyle(fontSize: 14.0, color: Theme.of(context).textTheme.body1.color),
                         onChanged: (SaleDuration newValue) {
                           setState(() {
                             _jangkaWaktu = newValue;
